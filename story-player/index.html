@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>雲卷雲書 說故事</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #161616;
+      --yellow: #FFD400;
+      --white: #FFFFFF;
+      --disabled-bg: #2a2a2a;
+      --disabled-fg: #9a9a9a;
+      --gap: 28px;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: "Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei",
+                   "PingFang TC", "Heiti TC", "Source Han Sans TC", sans-serif;
+      font-weight: 700;
+      font-size: 40px;
+      line-height: 1.35;
+      min-height: 100%;
+    }
+    body { min-height: 100vh; }
+    button {
+      font: inherit;
+      font-weight: 700;
+      color: inherit;
+      cursor: pointer;
+      border: 6px solid var(--yellow);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--white);
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:focus-visible, a:focus-visible {
+      outline: 8px solid var(--white);
+      outline-offset: 4px;
+    }
+    button:disabled {
+      background: var(--disabled-bg);
+      color: var(--disabled-fg);
+      border-color: #555;
+      cursor: default;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 28px 80px;
+    }
+    h1 {
+      font-size: 64px;
+      line-height: 1.2;
+      color: var(--yellow);
+      margin-bottom: 12px;
+    }
+    .hint {
+      font-size: 40px;
+      color: var(--white);
+      margin-bottom: 32px;
+    }
+    #continue-wrap { margin-bottom: 40px; }
+    #continue-wrap[hidden] { display: none; }
+    .btn-continue {
+      width: 100%;
+      text-align: left;
+      background: var(--yellow);
+      color: #000;
+      border-color: var(--yellow);
+      padding: 32px 36px;
+      min-height: 150px;
+    }
+    .btn-continue .big { font-size: 56px; display: block; margin-bottom: 10px; }
+    .btn-continue .sub { font-size: 40px; display: block; }
+    .btn-continue:hover, .btn-continue:focus-visible { filter: brightness(1.08); }
+    .series-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+    .series-card {
+      width: 100%;
+      text-align: left;
+      padding: 32px 36px;
+      min-height: 180px;
+      background: var(--card);
+      border: 6px solid var(--yellow);
+    }
+    .series-card:hover, .series-card:focus-visible {
+      background: var(--yellow);
+      color: #000;
+    }
+    .series-card:hover .meta, .series-card:focus-visible .meta { color: #000; }
+    .series-card .name { font-size: 52px; display: block; margin-bottom: 12px; }
+    .series-card .meta { font-size: 40px; color: var(--yellow); display: block; }
+    .series-card .meta + .meta { margin-top: 4px; }
+
+    /* 播放頁：標題與按鈕固定可見，影片填中間 */
+    .player-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 24px 24px;
+      gap: 16px;
+    }
+    .player-head { flex: 0 0 auto; text-align: center; }
+    .player-head .sname {
+      font-size: 52px;
+      color: var(--yellow);
+      line-height: 1.2;
+    }
+    .player-head .ep {
+      font-size: 48px;
+      color: var(--white);
+      margin-top: 6px;
+    }
+    .yt-wrap {
+      flex: 1 1 auto;
+      position: relative;
+      background: #111;
+      border: 4px solid #333;
+      border-radius: 12px;
+      min-height: 220px;
+      max-height: calc(100vh - 420px);
+      overflow: hidden;
+    }
+    .yt-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      font-size: 40px;
+      color: #ccc;
+      z-index: 0;
+    }
+    #yt-player, .yt-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    .yt-cover {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 2;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      font-size: 56px;
+      color: var(--yellow);
+    }
+    .yt-cover.on { display: flex; }
+    .controls {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+    .controls button {
+      min-height: 110px;
+      font-size: 48px;
+      padding: 16px 12px;
+    }
+    .btn-play {
+      background: var(--yellow);
+      color: #000;
+      border-color: var(--yellow);
+    }
+    .btn-home {
+      grid-column: 1 / -1;
+      background: var(--card);
+      color: var(--white);
+    }
+    .finished {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 40px 28px;
+      text-align: center;
+    }
+    .finished p {
+      font-size: 64px;
+      color: var(--yellow);
+    }
+    .finished button {
+      font-size: 56px;
+      min-height: 130px;
+      min-width: 70%;
+      max-width: 800px;
+      background: var(--yellow);
+      color: #000;
+      padding: 24px 40px;
+    }
+    @media (max-width: 800px) {
+      h1 { font-size: 52px; }
+      .btn-continue .big { font-size: 48px; }
+      .series-card .name { font-size: 44px; }
+      .player-head .sname { font-size: 44px; }
+      .player-head .ep { font-size: 40px; }
+      .controls { grid-template-columns: 1fr; }
+      .controls button { min-height: 100px; font-size: 44px; }
+      .yt-wrap { max-height: none; min-height: 40vh; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+  const DATA = [{"id":"PLDZOKA3TCPZ0","name":"玄學姑奶奶","videos":["wJdYxWED288","a3mhHJE6X_4","SxUiTQIXLcE","Pt5ozncKyk8","EdjP0XlO3aU","hIXnL5SNw0I","m0aBzf3aulw","nlNtKGlKNKU","gCv6YzJQoU0"]},{"id":"PLQHHAaW5RtsI","name":"把鬼嚇死了","videos":["glU6WNUSr4k","g4X8-_qJRQQ","TQOkR0PK8Tg","GQST4EdfICY","gNnGSeneH0I","GQRkofYbekc"]},{"id":"PLfMn0z3sds0g","name":"莘莘不息","videos":["izVjDIN719k","WFzY1kMXX0M","VsBfqBjIz84","EFRLpkT-n9U","ZzSW2k83LTg","pqopUmUrQ6M","_DOhQJiQEx8"]},{"id":"PLHZIQz2B6zZ4","name":"玄門千金下山","videos":["C84lYyvZhM4","O9oW7354OW4","35zz9bV1DGI","FDUXEpXlAIA","Q4WBeR9kKB8","MAAcCORUXNE","9CQPkqzYZ7Q"]},{"id":"PLWhc5bDq-xt0","name":"道士當法醫","videos":["Gy8uQxen-S0","jPwzeDPpsg8","vi_uOXcGGbw","KH9dWUrVfUw"]},{"id":"PLQ5G_9Ge_2Vw","name":"考研繼承道觀","videos":["QzrbhkRUSns","OmpXd-Atf0o","ct1yU7QFsgM","oSO_MxlOK_s","0qh7-qtiNwk","elmPgHtsAkg"]},{"id":"PLP7s2fN-LLNM","name":"上學兼職抓鬼","videos":["cU9uqdwJaPI","6diCzfmvhwo","w6BblKFPdsE","cLS9_2_hBcs","cYDKnktwpoo"]},{"id":"PLOKBhCLDPAyc","name":"勸鬼從良","videos":["BOnnS-pjiHI","939y4HwITdo","hGGRvz-UXpg","IvReYb9HrS4","MpNKtsJht4U"]},{"id":"PLMOAMKRtOcKw","name":"玄門女天師","videos":["uGIjNMu2BDU","vsU2pXviojw","Xcttir8Lk3I","PjMkprvNzC0","NT993ty4Z-0","u1w520GrrhE"]},{"id":"PLHrwzJZszVpM","name":"算命揭老底","videos":["LCicBLEasnE","fFKxQaovVAQ","L8jknHGE4Kg","dJJwOKU4Q-0","svSNjeBT_Ww","qdCUOxuhfBs","YYgdz0rN_BE","iHmaXLWglxk"]},{"id":"PLC0c3CQFVGSnFzRvNw77MLlqaZjmRBnmD","name":"轉行當道士","videos":["c_s7ryzrajc","JCJnnltmF5Y","4Rf8WXWLKys","cxg8ov95guo","7xbg8_124UE"]},{"id":"PLC0c3CQFVGSmri_j7DVQZIqvnRsCsBLVt","name":"娛樂圈天師","videos":["pGcN6lWWbAo","SFvUkRmDxNI","JcYbiSp5T9g","gDAkkgWAP_U","KfQKXWgbpqc","2dmMasTyE5o","C653vHCRjZ8"]},{"id":"PLC0c3CQFVGSlrkPrLGNLW6qcSxW-bsX0o","name":"偷命師","videos":["Z1tO6FTP7aE","NEs5Tr8QKUM","eG41MQZeRn4","jjNPGJl93TM","9BFIVsCyGgA","btIGHdyv16o"]},{"id":"PLRpsSd4gG1h0","name":"鬼王道士","videos":["myEJo68mrMM","KzM5iiYAKjM","0kmYitXbj8s","EPeso8r3Fhk"]},{"id":"PLB_ObqGHKy98","name":"留學兼職捉鬼","videos":["6JVZ9AlcfWA","oaH5gtWDQzo","r-DxRXTfYBI","gTDk-qpgCWk","LnDXg2rGsKc","cMXCwbOvZ9M","x5bV3IDby0A","c_OAocRKowE","DK1S7rSxeHg","_xqdLqAvpHc"]},{"id":"PLC0c3CQFVGSlZmAJWP4N2IZsDKSg1kbQw","name":"輪迴道姑","videos":["OIO_Ka58xaU","DGP6RnfPgUE","HJoImP0fkXM","YclS3IhR-60","r55S_IBBnJw","lr9jIUU52kY","Qc5AAUaLOXQ","dD3MX1AhC9k"]},{"id":"PLC0c3CQFVGSkXM2DGFk75sNlYHGki8WV1","name":"玄門小姑奶奶","videos":["5UC7Z2NO2f0","rHraBwBkIxg","Wo7tcyUlEBw","VDb0zADoJz0","pFcIlwnKqDM","WOHosjWiO-E","Ezl6AqPPMyk","mAfJnYMVklA","ab0N3XDawuE"]},{"id":"PLC0c3CQFVGSlGX9sBJ9oc_-atpSfTz5-1","name":"玄學破案","videos":["RzeqKQMiUUA","3JYPM9CosGw","n8DbgYa27Ds","8ZW5B0vNs3A","q3u1EwioKpc","7PRJbHhHOJY","24JysaJbmOc","Y-050KdHX4M","usp9qNqWw5E","MDrfQ0EawMY","i7GVU2NV3mg","IJCcMHrEmWg","9HWo9pEtEtc","e090Yg8pig8","LMV6vJmuWSo"]},{"id":"PLC0c3CQFVGSmWhpHlM_SWlmgU_RNsmqST","name":"道士下山","videos":["Mv8gB2DTyP8","NEAVYWamSbY","J7scxiNRlxA","SaNO8DBRnYo","ihHgssNu16w","7mbUkbH3Rjg","3x2sCBWo98s"]},{"id":"PLC0c3CQFVGSkK3DpO4rkpp5FUB0VV5ZcV","name":"玄門小師妹","videos":["3I5XEp-b5_Q","TJM_BMvbwfE","oXAQA5kQmGM","CiLKoTwZtMI","bhnKI58y_98","Bb033FctLZA","lBJMcYXadUk","_ej6o3a4Sic","LwHyp-PWGn8","_kqbpEddn_U","YSy1KIu2Omk","PkbgaYxl7q8","b1edaSWxwco"]},{"id":"PLC0c3CQFVGSkHEYgx_XMmHH-Q95sormpy","name":"溜達道士","videos":["na2db_03zfQ","sEVtm33j_NA","eavypyXZmk4"]},{"id":"PLC0c3CQFVGSmLjwjRA4UAAfaGyAJE6xeX","name":"八卦大師","videos":["oZ_pQhldlOk","ZeusmGLoA5A","Q9CBl9jPEYE","iYFxMvseXM0","qKuLaXf-zz8","kfAcKYRYnxY","cohMiJvVwHo","hI-i_-yc1aQ","QRvWkjapezs","rQP7H0ESqbc","P8b2zuEotuo","_rPFXamc80A","-vxKBPubB2g","wR2-Nvd5RiU","W8EJzC6j0eo","bzgQfKEnzxc","nYhNPpST8Fo","dbfsEcvZlVc","Y1dnV2iD4E4"]},{"id":"PLC0c3CQFVGSmnWE2alfSGNu6hBLGdgQKO","name":"高中生大師","videos":["gktJrYwUmAg","eiQ_Dz7AiTo","N4xHydOe0F8","76vDs8emGwk","jcWkgT7asRQ","I_fcVALNShY","JuX2d3TYNIA","u9Zbz0TD4AI","IqbpQ9t4IS4","nwP7BuHybfY","JtvUhXHFL4I","D4E5ms8IxQM"]},{"id":"PLC0c3CQFVGSnUhx5zHs3x4l_K396vqrMv","name":"想算命先拜師","videos":["T0UPQMdQkVQ","hRd7oO4ib2E","_OjlZqwhRi4","8aY93A_R3Mw","LkUc84ypdEw","Gv6heTaqdCg","ZW2S7yibqO0","SDsCsL2mYMI","WDo0E98rs5Q","3XV5xL2RuF0","wcBvjAFHIwU","NC0cN06RZ9k","QqAICXja864","KN9UevbZ5-U","Vx1eZbHMBNk","t9DgcYbt2aE","HjX4lXyTvuU","2pZopRbYkqM","erWps2L0wto","MtYeiHmhICA","EDwLcR-32-I","OQ5xsmzjC0o","dwIBWAHxkkI","fRbg0J8ZY7I","Hc90IGN-RM4"]},{"id":"PLC0c3CQFVGSkIpTMRJ5VS1VjM5p_nw1TT","name":"風水捉鬼","videos":["a9fy0Sm1snc","F0ERd4vX_QY","y4zp0KSnwE0","vuE0ifkrwzk","hdLSr0JMRBg"]},{"id":"PLC0c3CQFVGSlvksQqmN-BGwFeZcUp1zjf","name":"玄學大佬下山","videos":["Zvngw2npaOM","gIrW5cbCqgM","gPia18OCHvA","F6I95N3mqso","tIrRTmqcS8U","vvJIOc3QB_Y","wJokdq8n0D4","bQJ_p0V6VKU","KF53dfQetS0","dRq8EFIg44Q","KcKtHATpjp4"]},{"id":"PLC0c3CQFVGSmE6b9QRhsq3QDfS2QtkMO3","name":"國寵天師","videos":["Fb1TBAFeJiw","iRkDtItpp94","7GajJqlsVBI","VnWYPLWqceY","kzvHzObtpWs","316BFBqNw0w","tOPEn2A0E7E","3XVXEiAxt8I","hNoD2qQEoWI","QsYUd4kAryw"]},{"id":"PLC0c3CQFVGSmLxGpF8tR7NUVMzXD2LLdo","name":"玄玄擺攤","videos":["KiIzKBNV_6s","FH5SCw15qRs","HAmv0WxCif0","GsadLZItZ7E","rsQeW4rwrJg","6r6eiDHnDzc","lYA0aONJILc","qCidwDRDzIE","fHfwjA9i7p0","z6kcRZRnqiQ","KzQMHzl-6KU","eypYrkbmhsg","kadNrHc3phM","iRk-1UThDlE","bYeMN_PntpM","QUCddvmbFtA","fo3hTmkiyzg","-bCE7WAIBuk"]},{"id":"PLC0c3CQFVGSlZgt9EtRAmVeZP8bDQtaXX","name":"大師來自地府","videos":["GIJcHTL9SPY","v4teQ_v4j_w","wVj4m1ISWBY","po4xezkkc_U","BgPXRUkaUbk","bBvXtTyCO48","p3Zgr0tGCUs","uMvm1kwQwZw","TTAX828PXQM","OBiWCBZg9nA","hULyhnAt_H4"]},{"id":"PLC0c3CQFVGSmNpg5dGzFU9FyVsb-VmVYv","name":"一卦暴富","videos":["YWRrVLrONXM","7rK49D-VQPY","kQVjPqAsTcI","1QfJLtFQ5KU","PmwaVUcIVuU","Yxnx8wXDCOI","CIwOadl5ITk","lqInRVSVteQ","_YnLcycJ8KM","R8yCZeI6BSs","WDEEvYR1cew","QC1gFufqF20","VDVSwq_37HU","ORwSSBFiNMg","vwnPHl7wirg","2VYF0RMdn4Q"]},{"id":"PLC0c3CQFVGSlf34L4ZBnjjIecezH4EkrI","name":"火爆道姑","videos":["mOEZFWyXIM4","eUKL34TV1R4","uOd8mZF1QDc","hrJ9FjHfyRE","KaGiFWO6eIo","xQ926bckjVU","h6HC6XM7oEg","PCc3yHynd9c","DnsHIdznfX8","3UaAvQO827A","Pf3lyTfo7Ws","0CJuhcbsziY","yyQVXeGoyr4","M4OU4rbf5tc","LziUFlnXGhY","vaK1YkaA0BA","3Pbx9rtSFak"]},{"id":"PLC0c3CQFVGSlt8vJSEEgBzA5LmBMjSwOH","name":"玄學少女","videos":["JQpWh5tnK3E","6rPjJfoR9vk","h_alWAZWI8s","_s-h_eRlXiU","rny9rmgz_H8","8EkoWpsKaeI","ecztY6-PcGA","xeH-nMSe_tQ","S-q8San-MHA","vQYnxhyny-U","lchkhP-Y3cs","35QXLHTRm-M","H2TzRsVUTAY","Ki7qnzKCImw"]},{"id":"PLC0c3CQFVGSmSpEgpBewjhaIz4DAByMku","name":"團寵神棍","videos":["x2vokSksMP8","-SYszh1wzME","r3UjbqqwBH8","ZvtUjoHJe7g","WsT9F44_gUc","x_ccNnC4Tso","DEAEmm_-i74","iFPDs21d9Vk","kBgYDUresTE","at7vX9FaeWo","WANs8x7ovr0","CQmnX1_WM_w","PyjfmzIh3-g","Lxv2RRZvv0Y","G6jqxvwPUhA","i9erGlmHtEg","RmVi2rMlcwY","IAlvITQzpK8","AEzV7PKX9rM","3kVomDpbaNA","dtO0ckcxARg","B4j8050PxEw","eBLSMTSxUs4"]},{"id":"PLC0c3CQFVGSlALx7WmnAU6cJQyrnQh-LM","name":"神算萌妻","videos":["OPJ-hZNKiA0","jif6BlEnodA","0Y-CnphUJtk","bc250MhOK18","kZg59y7b9Pg","Lrr-jFbxknw","1n61RKqzT38","HBeAwAZPbIY","-g2M8c_Aukg","gMw9FjuRK2c","9GdV1GZOFA0","4eCSaJICq2I","BF8Y9rk6dis","RBaSVqe0k-s","Ce1w9mmk-m0","7pajB0oDZ34","0J1pUeKjU_0","GzmXAAMNhTw","A9XCwtcpRl8","NYoxQ7tdqW0","ggAnBz2cAxI","tKqqnZyWF2M","MiECNYQMB-I","De0erErVzbY","0PVd7ptKHds","41-Y4Q15nww","2q1CkjCPwFo","aDSEEL_Cwx4","dx5f3dlBqjA","AuIpRrZSuJc","NUmPGSQ7tAk","GoDdXcyqCPo","xOXSIsFTA60"]},{"id":"PLC0c3CQFVGSkOVh8oRYhcJ0bnwTlIVnTj","name":"真千金是玄門祖宗","videos":["konc6gXk9bc","XErVkEG52GY","aXxpJAaHlzs","tcjziCXzTbM","IF-LxwxuLnI","87WZasjedjk","WfRDb22giBs","hQ4NpMRjWEA","WfgCz40c9ic"]},{"id":"PLC0c3CQFVGSn1ERQ4RmChBd_dygh1bnDA","name":"地攤玄學","videos":["7llRjSvj-NU","L3D4_uQ52HQ","484nfgN7yuI","hK0GinFrNjY","GwvjNb7FQ44","pnjLeeS9-Ac","_W-zrollB3M","EywiIooZjbw","3UQlsdKbTyA","8EUKJ1IHn70","v_vbKcFdYvk","eamHgUdFXaM","0FjvHNkefss","LXeK2KmKyEA","Om7vHW2NZXw","aJ8ZwgjbSec","8TdtQq20k64","CP-BSbnX5B8","zbOIxphMQfU","_vLhw3-c3lA","QAVoSg7q4X4","ejb4PKmThys","me7hY0qKKj4","E-oC19cEe2A","XFc-jh23Fxg","0RuEWkNuKP8","-oIU15PF0Yc","hUe7MziWKws","wyfou3WWcZw"]},{"id":"PLC0c3CQFVGSkBfgBGtpjrn10xfOvJa4DT","name":"玄學千金下山","videos":["rmVw57aud0g","aCHPw2gIwb4","WH8eDwWT0Go","b4hHFGCWzto","Wr-9DwtIb78","CyUpR8RVJa4"]},{"id":"PLC0c3CQFVGSnSVmjV2q_edq9aCPCzANQx","name":"玄學千金斷親緣","videos":["VFWsdrLuni4","JkD9xrMWYwY","jz1GjXw_rqo","vJy4IRKXKXA","10ZoQfCEVh0","d1Emk6SRcjk","p6cyT-D_ylM"]},{"id":"PLC0c3CQFVGSlEam3FvXbQ7INSmX4rQWCp","name":"玄學小祖","videos":["Aw9dylcaU8c","marW7gtTLco","kOClmRHygzo","V2Os4t7nUiA","m7je_V9UpDI","-k4P06ia_SQ","G7ru2fCUW4Y","zyM9L7dYfQE","u_0yoKbK2hs","ZrgiJaxSq5c","uipEo0C79o8","jU4mNwEJDhQ"]},{"id":"PLC0c3CQFVGSnPNEbN_2KIvps36g5_Kmkf","name":"團寵玄學大佬","videos":["I02ISFr7xtU","rRfjmziTO50","dmg-TfV41IQ","NQxS8WVGFBM","8odi6CoVU2Y","BLi1OI5hU2E","VRB1PmFEi5o","z2OfguebAcU","lWNrKsPBTUs"]},{"id":"PLC0c3CQFVGSmGPf6-zq2mU6FawaGMw-4H","name":"替嫁玄學大佬","videos":["oa5oxlSRxmY","oSo0BhOPjw4","qYlii7Ar91c","m60vadVnI0U","kbu1IekBxhQ","MWthrmeE4WQ","U_iLfHrB4Es","pG1bKQYB1f0","CwTn6hLMOfI","RnoWNPVxFCg","PgEEcnWjSJQ"]},{"id":"PLC0c3CQFVGSn7Vnh3hsLFFpgL3d7WC12p","name":"龍骨村祭靈鎖","videos":["qyfiAQlsw5Q","HorqbHYt-ro"]},{"id":"PLC0c3CQFVGSnijsYCstByNLb2QQssP8jh","name":"千金一卦","videos":["E3E3gqqUxVY","noUJkI4JMNU","mXyNR40tY1c","zfKpPm4B-h4","Ft3eoW8anU0","PcrMWru1wHE","weDm3P_TYu4","p9Tm5tOzZR4","gstSHqXpcuo","QpUKkSX76tc","cKUvjZBgMyA","eI0kWWTv5Yk","t5N6AJZqTNs","yi4xx-ZzBDE","IepkwgBx0GI","_4aRI50PrTI","WBLa-xnp1hw","HbwWAq_23AA","RFVwfN32lPg","AVgQ9pCoeJw","c6QK23xKvAk","RJFpc-f-hag","W5vz6_hcPS8","lcLBg8nvEfA","MoX9ZLWDz8c","CxD89AN8-es","TGBch7I5bqA","qOhBvc0KPoI","ihPlyvuH70w"]},{"id":"PLC0c3CQFVGSn-PbPLLh2rm-aI5VNMVZ7w","name":"真千金鬼見愁","videos":["FEL5OWsl-Zo","iNlefhJSNDI","GiE6x2jLXvI","5SD2_DthdXU","rypgnjdlvbE","TifxBzvZzhc","Mq0CnCcOixk","vUAdD3GP1bo","1MmEVHMaJBw","1SxRlL5PwFw","sb4p2OieUkg","TTLUp8NQnb0","Dqd8iRhj514","d6JwL9U0Utc","Qm0lcLil5gs","wpqY6on0R5k","PjUCiQ3FRhk","YPRcKYLXviA","9dkVedy9-OE","_0wbWAgKGYk","d75IHeKMveQ","eAdpLRS57dc","49YxdKdRfDE","7Pm6_XxCYhs"]},{"id":"PLC0c3CQFVGSnMt54Tts6uE5MzxeWx12Mn","name":"地府公務員","videos":["Mh_QmiWmBwA","NIIEJd1vlmE","EibYzWikerg","mTHbQ2lLUUs","CK1UYfRMpzo","YK-KQwzv1MI","q5z1jeGZCm8","5hC6SEdw6tc","lw6RG4o6kOw","AKrOrliDBy4","xFrtve8c72Y","GUy2n1faxZc","NcDaEhYa_AU","-lSFdRBNkEI","ehRgRRP_fI0","HpreC3l7fYI","MnLzL-7CzpI"]},{"id":"PLC0c3CQFVGSkmLcMxYTj9vR_Sa1p-V2Zl","name":"算心算命","videos":["B8l5kcXYRSk","zmu3qwqq5bI","SGRs8xJHma8","KfciiJBXAx8","6xQ4he6z6x4","lH3pjS60Z7Y","NQZmNjeT4Kk","bjgIB_BCspU","oEbkfxkMl8o","6wZ6GSBQca4","Jg6iqiCwsI0","QOOmM_WNgpA","GbZobaA2Roo","Alc7Dt9W7vI","ohoEdnhu1pU","QLx-GgRoa5c","mqH8GN6935c","r0-V20IpCmw","SNMA5-RKqkQ","B5rZ_A19uB0","ymE2kW7TrWw","wSz5UfImhSw","T6oSLSYXid4","sVc0UtCI-Ic","YiacX3Goxyc","5IchInRoWTs","8MbDYEVJI4I","C7VRGEnMB1c","bT9z2AtmLQw","qlORPmky4_E","DnGhZYoK938","dZy9KJhA08Y","PZ8aZ4Vrb4c"]},{"id":"PLC0c3CQFVGSkPzquNQBjtUmke6hPveYI9","name":"五行缺錢","videos":["xFch9ZFJsBg","r5W1-_aWVl4","bcQgtF1-NKM","Q7p7bqA15KA","9DtRf1_vizQ","7-9Pd1FP2GY","jN2g7QSZ11M","WP1PGfhxQbE","lBj8jkvNmyw","eOjse2e5Dwo","z4QR_R10CSw","Ic8RMOIg5VY","27OZD-SHxMM","xlYw_Ey920E","3Q2SnbjExNY","x2UCedfqfEE","MgSja0BPTgc","KJgrEvW2-eM","xwjKdKbvF-M","UJDUAao2MFg","6FafQ-0JPW0","3d1ePHEgRPM","CxcDicLYcS8","_0i2-G1v050","tAIfsUU27HI","j6jO8kKop18","B45eGukxSP4","DMSzEDZcG0E","Npul1O7e-Ys","23qcHN6j72s","suNq5HISYcw"]},{"id":"PLC0c3CQFVGSmIQlgTKBhm-GsDX0opmVvB","name":"卦行天下","videos":["D95kXSh-shU","HrE7o0gyGMU","mCv-PwOzgfQ","hVA4mDJJuWw","WnLFSEJrmPo","6O6sh1rEKhQ","4kyvvFNyPlA","CWhHJ2yUH8g","l2tdX_ehxl0","UePphMRvXWw","6LuRcqQJtG8","fLSD7l3EudQ","mGKnS2oBNUM","YdmD2EwhSxU","LndRbIL1-S8","2ex9I3FRvOY","hEmANwFQlU0","6SlXcLE-Uqw","gDilNjR78o0","wgzokS6ZKOs","_b1-XzrIcgA","3_fSmzJKZM8","nUVSGhoAq3w","dH8w-6vjHW4","qHU_OzjFFB0","dB2fZ1DFGeY","M4Oxr8eg7AI","05GoLoXbGLs","iuajYgC3x3w","bNkEjXmjnUA","bllPbpyFDX4","eCA-ia9hvDo","XMwZghzaEl4","Yf_FLNmn8Fc"]},{"id":"PLC0c3CQFVGSk1KbaBqdGqXGbnV7VaJ_22","name":"天師傳人","videos":["DJfDa65LBuY","3ZMKvRIQtoo","XoRTJsUjybk","S2VoYwFyV-o","DpemE1wKfJY","R3hLn6ifYcM","HTz6u501hXw","SlQ1L7avbMs"]},{"id":"PLC0c3CQFVGSlpIs2i5DJ1BKS9PtNzzV1W","name":"出馬仙","videos":["7S6NOp6wYsQ","JYQz2hcrlok","ZDZVMkL9N2c","jJNvTNqdUu8","ChDIXLSMSTc","6bGm0YRB2rE"]},{"id":"PLC0c3CQFVGSlaffKHjjrIUxe91gf9bY4_","name":"算命律師","videos":["MWFcmsrsmck","htCjj4tVqGM","499ul9GTRrU","S__32wz7rEc","I7ByrOnVgeg","JtqjZeAkw9E","TJ58rIjAhqI","1Q9BmK4IUWc","Nc_WCHJ6ZTo","3NhxHc2kUjY","L-Y6iY-_a9U","D5wZj3TWni8","FkLKvUimLEg","s_HkcjtgqCs","ds-tl-NBdEk","orxlpIU7pyk","KSDSiyrA4p4","Ygt2Y1Fa6-w","OkTPf_wEx-E","nvUVdMAiB0Y","8AO5g7pJ8Ps","3dtqqjyfs0c","o5uIGHOkibI","hrJkMmQ1E_U","b5aB_rcpCFo","ZI7QLf03Kyw","ZMEPJ-d-xmY","sdQA0zlYAGU","XrT26LEZmSE","-XPlVbEPrQE","7PQuatbP810","P1emdrZIuVM","GAVEZxwytEw","ykpMIRG29R4","jJUf0lUp6PY"]},{"id":"PLC0c3CQFVGSl_JyNzcmxAdC9Uu85bimL-","name":"天師是女鬼","videos":["7RZJ55Pcjjw","xJaEopL5k3A","on7Hu40QP_Q","HQB7vnWQqW0","3pFZN7yzKP8","w_52XGC7FZk","EbYNox_NdNc","pJjMe8k7De8"]},{"id":"PLC0c3CQFVGSnyYPMJYNIOrgr9lAlnsaMZ","name":"玄學千金","videos":["jtFAPNggjME","gQkD7Ls71SE","q1w9l8S1ocM","V8bpL2WUS5U","yLyfgNJNbxI","zhEot76DcIU","Hj1tS2_ZYsA","3twTNKC9MxY","KH0-1DqHYGw","YCxCFpimL1U","a9O3ZragRLA","SKN7YVT-ra0","skgMP4B79Kg","wUJyR9DpN-k","pSnK4KMavwg","RBSMx86SdnM","v4FxGLlkfRw","w90kn4gD1Y8"]},{"id":"PLC0c3CQFVGSlJ8QQMTXuFMtR1Ovyet5eb","name":"總裁夫人擺攤算命","videos":["SRdglyR7EVI","2LzRV5mrG8w","PWzlg0UpgbU","Bq0dDbTJvMc","ecmyKashc8A","aWxp-PTRBVc","i5--uUEcOUc","QPn7NbVLZ44","nY1JyvcP7F0","cz6oAqPQ_LM","ckSnWfhBWkY","88NeUGLU0_U","10nSg603FV0","Gy-j4_GW7yk","U0jeNHMz-as","6ZAv3OL-cGY","-n4t5asfR-k","6PsbhvM2oso","1gHCbG53iiw","Z0Fg2IsddMI","h459qxCnyPA","GLPBiYJyhWs","UWA95lqfVm0","U-GkS0k6zdc","o7KxR0Uw4qA","DriPO54iqtc","ri-qYOqI4jo","hI60QRtyCoU","MqkeMPeforU","KPLXOOEO0bI"]},{"id":"PLC0c3CQFVGSmVKszuiwv_gA9uQdkk8odn","name":"千金小天師","videos":["g1ahKr7Md08","qNZ2g9rNTvk","gYEygQvN5X4","L5MOTb4nen4","EAdnjSZMT1I","gIuEm9rvVNY","KYiPCPNNK4I","X_zqYT-pnkg","0PTpcmtBrhY","c4zQJEMpsGE","uf-BlPRsJrI","xU-koju6fLM","NVyDaHK-paw","EgX63pBzt1k","Rk5_vCeiixw","1TsGLqF9ClU","dzRqT7SDKjc","lyHhr-rHlQQ","v2e7ClBssZ0"]},{"id":"PLC0c3CQFVGSmpFaRSYzMUUKOo1FN-GWbC","name":"通靈師","videos":["ajb5kbQk_LE","1nA6bbYQcDk","06GZdU6iZl4"]},{"id":"PLC0c3CQFVGSnrL_ebmlcV0lw529VSqcz8","name":"小道士被迫下山","videos":["v0904Qnz-BE","m2GzonjbQO4","dkSLGwCDwLc","Ps_f5ep2z-I","yXbQMI-Z9Cw","kZYCcg6u7Tc","QzqnL4aMtSI","p9vwVQj2BFo","uOuurT3aYgs","VcWWcVVfV9s","yZk5InAsSo0","y0UwUULz-gE","Vp9yCbXdzoo","Lv1JBA0b9dA"]},{"id":"PLC0c3CQFVGSm_V3lx6C_F09YHZBSaVPLO","name":"人棺","videos":["_IgN0fOvoo0","iu0jjNZj1os","jnnJYeJhlyI","TX8lZdXKBi0"]},{"id":"PLC0c3CQFVGSnSnWCU4ygK74HH-R2FO3x7","name":"胤都異妖錄","videos":["8xjW1bgHOgI"]},{"id":"PLC0c3CQFVGSnNRmA92FkSr66jSJyG63gU","name":"紙紮鋪","videos":["XhtFx57fRAM","7vwQ0ZOKJ24","kFkhB8iidqQ"]},{"id":"PLC0c3CQFVGSlOWR3tVtXh7KqdfwvG4OAW","name":"地師少女","videos":["olFbEe8P5ZA","2aSZpkvUTlU","SpqhTtu5qc4","z35cvVU-r1I","Y7LFpmGWyfU","9rAYoByWNEw","7rn3t4GyoyQ"]},{"id":"PLC0c3CQFVGSmAJI2L2URMUeXgYMEKebx2","name":"打魂鞭系列","videos":["v0Yice_wKpQ","iLOyHcyAa5o","1TZMC-X-sfY"]},{"id":"PLC0c3CQFVGSmdLS1nZFTj8t-4jadoFJVR","name":"靈珠傳系列","videos":["SDeOk1-ROCQ","uKAq8PDj4Nw","oMGgT1KCkXw","QDhatnf7kIA","tYAGc667YOY","KYAwP1yzMJ0","-NpAj66bxpE","5U2O5m9lkm4","EEk9219WDMU","SbJJyLFotG0","y78X5wbxNS4","wbzOcfACxAc","-kqWI3_E7yY","F04Z2driZfY","vMP6OvP0UxY"]}];
+  const STORAGE_KEY = "yunjuan-stories-v1";
+
+  let ytApiReady = false;
+  let ytPlayer = null;
+  let saveTimer = null;
+  let finishedTimer = null;
+  let playCtx = null; // { series, index }
+  let ignoreEnded = false;
+
+  window.onYouTubeIframeAPIReady = function () {
+    ytApiReady = true;
+    document.dispatchEvent(new Event("yt-api-ready"));
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  function loadStore() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (s && typeof s === "object") {
+        s.series = s.series || {};
+        return s;
+      }
+    } catch (e) {}
+    return { lastId: null, series: {} };
+  }
+
+  function saveStore(s) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  }
+
+  function getProgress(id) {
+    return loadStore().series[id] || null;
+  }
+
+  function setProgress(id, patch) {
+    const s = loadStore();
+    const prev = s.series[id] || { index: 0, seconds: 0, finished: false };
+    s.series[id] = {
+      index: prev.index,
+      seconds: prev.seconds,
+      finished: prev.finished,
+      ...patch
+    };
+    s.lastId = id;
+    saveStore(s);
+  }
+
+  function findSeries(id) {
+    return DATA.find(function (x) { return x.id === id; }) || null;
+  }
+
+  function parseRoute() {
+    const h = (location.hash || "").replace(/^#/, "");
+    const m = h.match(/^\/?play\/([^/]+)\/(\d+)\/?$/);
+    if (m) return { page: "play", id: decodeURIComponent(m[1]), index: parseInt(m[2], 10) };
+    return { page: "home" };
+  }
+
+  function goHome() {
+    location.hash = "#/";
+  }
+
+  function goPlay(id, index) {
+    location.hash = "#/play/" + encodeURIComponent(id) + "/" + index;
+  }
+
+  function progressLabel(id, count) {
+    const p = getProgress(id);
+    if (!p) return "還沒聽過";
+    if (p.finished) return "已經聽完了";
+    const n = Math.min((p.index || 0) + 1, count);
+    return "上次聽到第 " + n + " 集";
+  }
+
+  function renderHome() {
+    teardownPlayer();
+    const store = loadStore();
+    const last = store.lastId ? findSeries(store.lastId) : null;
+
+    const root = $("app");
+    root.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "wrap";
+    wrap.id = "home";
+
+    const h1 = document.createElement("h1");
+    h1.textContent = "雲卷雲書";
+    const hint = document.createElement("p");
+    hint.className = "hint";
+    hint.textContent = "請點一個故事開始聽";
+    wrap.appendChild(h1);
+    wrap.appendChild(hint);
+
+    const contWrap = document.createElement("div");
+    contWrap.id = "continue-wrap";
+    if (!last) {
+      contWrap.hidden = true;
+    } else {
+      const lastP = getProgress(last.id);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-continue";
+      btn.id = "btn-continue";
+      const big = document.createElement("span");
+      big.className = "big";
+      const sub = document.createElement("span");
+      sub.className = "sub";
+      if (lastP && lastP.finished) {
+        big.textContent = "再聽一次上次的故事";
+        sub.textContent = last.name + "　已經聽完了";
+      } else {
+        big.textContent = "繼續聽上次的故事";
+        const n = lastP ? Math.min((lastP.index || 0) + 1, last.videos.length) : 1;
+        sub.textContent = last.name + "　第 " + n + " 集";
+      }
+      btn.appendChild(big);
+      btn.appendChild(sub);
+      btn.addEventListener("click", function () {
+        startSeries(last.id);
+      });
+      contWrap.appendChild(btn);
+    }
+    wrap.appendChild(contWrap);
+
+    const list = document.createElement("div");
+    list.className = "series-list";
+    DATA.forEach(function (s) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "series-card";
+      card.setAttribute("data-id", s.id);
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = s.name;
+      const count = document.createElement("span");
+      count.className = "meta";
+      count.textContent = "共 " + s.videos.length + " 集";
+      const prog = document.createElement("span");
+      prog.className = "meta";
+      prog.textContent = progressLabel(s.id, s.videos.length);
+      card.appendChild(name);
+      card.appendChild(count);
+      card.appendChild(prog);
+      card.addEventListener("click", function () { startSeries(s.id); });
+      list.appendChild(card);
+    });
+    wrap.appendChild(list);
+    root.appendChild(wrap);
+  }
+
+  function startSeries(id) {
+    const s = findSeries(id);
+    if (!s) return;
+    const p = getProgress(id);
+    let index = 0;
+    if (p && !p.finished) {
+      index = Math.max(0, Math.min(p.index || 0, s.videos.length - 1));
+    }
+    goPlay(id, index);
+  }
+
+  function renderFinished(name) {
+    teardownPlayer();
+    const root = $("app");
+    root.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "finished";
+    const p = document.createElement("p");
+    p.textContent = "這個故事聽完了";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "回首頁";
+    btn.addEventListener("click", function () {
+      clearTimeout(finishedTimer);
+      goHome();
+    });
+    box.appendChild(p);
+    box.appendChild(btn);
+    root.appendChild(box);
+    clearTimeout(finishedTimer);
+    finishedTimer = setTimeout(function () { goHome(); }, 4000);
+  }
+
+  function renderPlayer(id, index) {
+    const series = findSeries(id);
+    if (!series) { goHome(); return; }
+    const total = series.videos.length;
+    index = Math.max(0, Math.min(index, total - 1));
+    playCtx = { series: series, index: index };
+
+    const existing = getProgress(id);
+    const resumeSame = existing && !existing.finished && existing.index === index;
+    const startSeconds = resumeSame ? Math.max(0, Math.floor(existing.seconds || 0)) : 0;
+    setProgress(id, { index: index, finished: false, seconds: startSeconds });
+
+    const root = $("app");
+    root.innerHTML = "";
+    const page = document.createElement("div");
+    page.className = "player-page";
+    page.id = "player-page";
+
+    const head = document.createElement("div");
+    head.className = "player-head";
+    const sname = document.createElement("div");
+    sname.className = "sname";
+    sname.id = "player-sname";
+    sname.textContent = series.name;
+    const ep = document.createElement("div");
+    ep.className = "ep";
+    ep.id = "player-ep";
+    ep.textContent = "第 " + (index + 1) + " 集 / 共 " + total + " 集";
+    head.appendChild(sname);
+    head.appendChild(ep);
+
+    const yt = document.createElement("div");
+    yt.className = "yt-wrap";
+    yt.id = "yt-wrap";
+    const ph = document.createElement("div");
+    ph.className = "yt-placeholder";
+    ph.id = "yt-placeholder";
+    ph.textContent = "正在載入影片";
+    const cover = document.createElement("div");
+    cover.className = "yt-cover";
+    cover.id = "yt-cover";
+    const mount = document.createElement("div");
+    mount.id = "yt-player";
+    yt.appendChild(ph);
+    yt.appendChild(mount);
+    yt.appendChild(cover);
+
+    const controls = document.createElement("div");
+    controls.className = "controls";
+    const btnPrev = document.createElement("button");
+    btnPrev.type = "button";
+    btnPrev.id = "btn-prev";
+    btnPrev.textContent = "上一集";
+    btnPrev.disabled = index <= 0;
+    const btnToggle = document.createElement("button");
+    btnToggle.type = "button";
+    btnToggle.id = "btn-toggle";
+    btnToggle.className = "btn-play";
+    btnToggle.textContent = "播放";
+    const btnNext = document.createElement("button");
+    btnNext.type = "button";
+    btnNext.id = "btn-next";
+    btnNext.textContent = "下一集";
+    btnNext.disabled = false;
+    const btnHome = document.createElement("button");
+    btnHome.type = "button";
+    btnHome.id = "btn-home";
+    btnHome.className = "btn-home";
+    btnHome.textContent = "回首頁";
+
+    btnPrev.addEventListener("click", function () { changeEpisode(-1); });
+    btnNext.addEventListener("click", function () { changeEpisode(1); });
+    btnToggle.addEventListener("click", togglePlay);
+    btnHome.addEventListener("click", function () {
+      saveCurrentSeconds();
+      goHome();
+    });
+
+    controls.appendChild(btnPrev);
+    controls.appendChild(btnToggle);
+    controls.appendChild(btnNext);
+    controls.appendChild(btnHome);
+
+    page.appendChild(head);
+    page.appendChild(yt);
+    page.appendChild(controls);
+    root.appendChild(page);
+
+    createOrLoadPlayer(series.videos[index], startSeconds);
+  }
+
+  function updatePlayerChrome() {
+    if (!playCtx) return;
+    const { series, index } = playCtx;
+    const ep = $("player-ep");
+    if (ep) ep.textContent = "第 " + (index + 1) + " 集 / 共 " + series.videos.length + " 集";
+    const sname = $("player-sname");
+    if (sname) sname.textContent = series.name;
+    const prev = $("btn-prev");
+    if (prev) prev.disabled = index <= 0;
+    const next = $("btn-next");
+    if (next) next.disabled = false;
+  }
+
+  function coverPlayer(text) {
+    const c = $("yt-cover");
+    if (!c) return;
+    c.textContent = text || "";
+    c.classList.add("on");
+  }
+
+  function uncoverPlayer() {
+    const c = $("yt-cover");
+    if (!c) return;
+    c.textContent = "";
+    c.classList.remove("on");
+  }
+
+  function whenYtReady(fn) {
+    if ((window.YT && YT.Player) || ytApiReady) {
+      fn();
+      return;
+    }
+    document.addEventListener("yt-api-ready", fn, { once: true });
+  }
+
+  function createOrLoadPlayer(videoId, startSeconds) {
+    ignoreEnded = true;
+    whenYtReady(function () {
+      if (!playCtx || !$("yt-player") && !ytPlayer) return;
+      if (ytPlayer && typeof ytPlayer.loadVideoById === "function") {
+        uncoverPlayer();
+        ytPlayer.loadVideoById({
+          videoId: videoId,
+          startSeconds: startSeconds || 0
+        });
+        setTimeout(function () { ignoreEnded = false; }, 800);
+        return;
+      }
+      if (!$("yt-player")) return;
+      ytPlayer = new YT.Player("yt-player", {
+        width: "100%",
+        height: "100%",
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          disablekb: 1,
+          iv_load_policy: 3,
+          fs: 1,
+          origin: location.origin,
+          start: Math.floor(startSeconds || 0),
+          enablejsapi: 1
+        },
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: onPlayerStateChange,
+          onError: onPlayerError
+        }
+      });
+    });
+  }
+
+  function onPlayerReady(e) {
+    ignoreEnded = false;
+    try {
+      const p = playCtx && getProgress(playCtx.series.id);
+      const start = p && p.index === playCtx.index ? (p.seconds || 0) : 0;
+      if (start >= 15) {
+        e.target.seekTo(start, true);
+      }
+      e.target.playVideo();
+    } catch (err) {}
+    startSaveLoop();
+    syncToggleLabel();
+  }
+
+  function onPlayerStateChange(e) {
+    syncToggleLabel();
+    if (!window.YT) return;
+    if (e.data === YT.PlayerState.ENDED) {
+      if (ignoreEnded) return;
+      ignoreEnded = true;
+      coverPlayer("");
+      changeEpisode(1);
+    } else if (e.data === YT.PlayerState.PLAYING) {
+      uncoverPlayer();
+      ignoreEnded = false;
+    }
+  }
+
+  function onPlayerError() {
+    const ph = $("yt-placeholder");
+    if (ph) ph.textContent = "這集暫時不能播放，請按下一集";
+    coverPlayer("這集暫時不能播放，請按下一集");
+  }
+
+  function syncToggleLabel() {
+    const btn = $("btn-toggle");
+    if (!btn) return;
+    let playing = false;
+    try {
+      if (ytPlayer && window.YT && ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        playing = true;
+      }
+    } catch (e) {}
+    btn.textContent = playing ? "暫停" : "播放";
+  }
+
+  function togglePlay() {
+    if (!ytPlayer) return;
+    try {
+      const st = ytPlayer.getPlayerState();
+      if (window.YT && st === YT.PlayerState.PLAYING) {
+        ytPlayer.pauseVideo();
+      } else {
+        uncoverPlayer();
+        ytPlayer.playVideo();
+      }
+    } catch (e) {}
+    setTimeout(syncToggleLabel, 200);
+  }
+
+  function saveCurrentSeconds() {
+    if (!playCtx || !ytPlayer) return;
+    try {
+      const t = ytPlayer.getCurrentTime();
+      if (typeof t === "number" && !isNaN(t)) {
+        setProgress(playCtx.series.id, {
+          index: playCtx.index,
+          seconds: Math.max(0, Math.floor(t)),
+          finished: false
+        });
+      }
+    } catch (e) {}
+  }
+
+  function startSaveLoop() {
+    clearInterval(saveTimer);
+    saveTimer = setInterval(saveCurrentSeconds, 5000);
+  }
+
+  function changeEpisode(delta) {
+    if (!playCtx) return;
+    saveCurrentSeconds();
+    const next = playCtx.index + delta;
+    const series = playCtx.series;
+    if (next < 0) return;
+    if (next >= series.videos.length) {
+      setProgress(series.id, { index: series.videos.length - 1, seconds: 0, finished: true });
+      renderFinished(series.name);
+      return;
+    }
+    const samePage = $("player-page");
+    playCtx.index = next;
+    setProgress(series.id, { index: next, seconds: 0, finished: false });
+    if (samePage) {
+      if (location.hash !== "#/play/" + encodeURIComponent(series.id) + "/" + next) {
+        history.replaceState(null, "", "#/play/" + encodeURIComponent(series.id) + "/" + next);
+      }
+      updatePlayerChrome();
+      createOrLoadPlayer(series.videos[next], 0);
+    } else {
+      goPlay(series.id, next);
+    }
+  }
+
+  function teardownPlayer() {
+    clearInterval(saveTimer);
+    saveTimer = null;
+    clearTimeout(finishedTimer);
+    finishedTimer = null;
+    ignoreEnded = true;
+    if (ytPlayer) {
+      try { ytPlayer.stopVideo(); } catch (e) {}
+      try { ytPlayer.destroy(); } catch (e) {}
+      ytPlayer = null;
+    }
+    playCtx = null;
+  }
+
+  function route() {
+    const r = parseRoute();
+    if (r.page === "play") {
+      if (playCtx && playCtx.series.id === r.id && playCtx.index === r.index && $("player-page")) {
+        return;
+      }
+      renderPlayer(r.id, r.index);
+    } else {
+      renderHome();
+    }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const r = parseRoute();
+    if (r.page === "play") {
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        if ($("app").querySelector(".finished")) {
+          goHome();
+          return;
+        }
+        togglePlay();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        changeEpisode(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        changeEpisode(1);
+      }
+      return;
+    }
+    const cards = Array.prototype.slice.call(document.querySelectorAll(".btn-continue, .series-card"));
+    if (!cards.length) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const i = cards.indexOf(document.activeElement);
+      const start = i < 0 ? (e.key === "ArrowDown" ? -1 : 0) : i;
+      const next = e.key === "ArrowDown"
+        ? Math.min(start + 1, cards.length - 1)
+        : Math.max(start - 1, 0);
+      cards[next].focus();
+    }
+  });
+
+  window.addEventListener("hashchange", route);
+  window.addEventListener("beforeunload", function () { saveCurrentSeconds(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) saveCurrentSeconds();
+  });
+
+  route();
+  </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
