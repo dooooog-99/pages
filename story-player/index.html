@@ -1177,7 +1177,7 @@
     pendingRewind = null;
     let announceText = "";
     if (pendingFresh && pendingFresh.id === id) {
-      startSeconds = 0;
+      if (pendingFresh.fresh) startSeconds = 0;
       announceText = pendingFresh.text;
     }
     pendingFresh = null;
@@ -1651,20 +1651,33 @@
     }, 2500);
   }
 
-  // 數字鍵盤 Enter：隨機換一個別的故事，從第 1 集 0 秒開始
+  // 數字鍵盤 Enter：隨機換一個「還沒聽過」的故事，從第 1 集 0 秒開始；
+  // 全部都聽過時，隨機挑別的故事，從它存的位置接著聽（不重設進度）
   function switchToRandomSeries() {
     if (!playCtx || !$("player-page")) return;
     const curId = playCtx.series.id;
     const others = DATA.filter(function (x) { return x.id !== curId; });
     if (!others.length) return;
-    const pick = others[Math.floor(Math.random() * others.length)];
     saveCurrentSeconds();
     appendHistory();
     flushCloudWrite();
+    const store = loadStore();
+    const heard = {};
+    Object.keys(store.series || {}).forEach(function (id) { heard[id] = true; });
+    (store.history || []).forEach(function (h) { if (h && h.seriesId) heard[h.seriesId] = true; });
+    const unheard = others.filter(function (x) { return !heard[x.id]; });
+    const fresh = unheard.length > 0;
+    const pool = fresh ? unheard : others;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    let index = 0;
+    if (!fresh) {
+      const p = store.series[pick.id];
+      if (p && !p.finished) index = Math.max(0, Math.min(p.index || 0, pick.videos.length - 1));
+    }
     teardownPlayer();
     pendingRewind = null;
-    pendingFresh = { id: pick.id, text: "換一個故事：" + pick.name };
-    goPlay(pick.id, 0);
+    pendingFresh = { id: pick.id, text: "換一個故事：" + pick.name, fresh: fresh };
+    goPlay(pick.id, index);
   }
   window.__switchToRandomSeries = switchToRandomSeries;
 
