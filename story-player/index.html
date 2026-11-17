@@ -1178,6 +1178,18 @@
         if ($("app").querySelector(".finished")) return;
         seekBy(5);
         showFlash("快轉 5 秒");
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if ($("app").querySelector(".finished")) return;
+        if (!playCtx || playCtx.index <= 0) return;
+        changeEpisode(-1);
+        showFlash("上一集");
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if ($("app").querySelector(".finished")) return;
+        if (!playCtx) return;
+        changeEpisode(1);
+        showFlash("下一集");
       }
       return;
     }
