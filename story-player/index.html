@@ -411,7 +411,7 @@
       color: #eee;
     }
     .hist-page button {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 400;
       border: 2px solid #888;
       border-radius: 10px;
@@ -427,19 +427,19 @@
     .hist-page h2 { font-size: 44px; font-weight: 700; color: #fff; margin: 6px 0 6px; }
     .hist-note { font-size: 28px; color: #bbb; margin-bottom: 20px; }
     .hist-empty { font-size: 32px; color: #ddd; padding: 40px 0; }
-    .hist-table { width: 100%; border-collapse: collapse; font-size: 30px; }
+    .hist-table { width: 100%; border-collapse: collapse; font-size: 24px; }
     .hist-table th, .hist-table td {
       text-align: left;
       vertical-align: middle;
-      padding: 12px 8px;
+      padding: 12px 6px;
       border-bottom: 2px solid #333;
       white-space: normal;
       overflow-wrap: anywhere;
     }
-    .hist-table th { color: #aaa; font-weight: 700; font-size: 26px; background: #111; }
+    .hist-table th { color: #aaa; font-weight: 700; font-size: 20px; background: #111; white-space: nowrap; }
     .hist-table tbody tr { cursor: pointer; }
     .hist-table tbody tr:hover { background: #1c1c1c; }
-    .hist-table td.title { color: #fff; font-weight: 700; word-break: keep-all; overflow-wrap: normal; }
+    .hist-table td.title { color: #fff; font-weight: 700; word-break: keep-all; overflow-wrap: normal; white-space: nowrap; }
     .hist-table td.when { word-break: keep-all; overflow-wrap: normal; }
     .hist-table td.ep { word-break: keep-all; overflow-wrap: normal; }
     .hist-table td.ep .u { white-space: nowrap; }
@@ -1698,12 +1698,7 @@
         ];
         cells.forEach(function (c, i) {
           const td = document.createElement("td");
-          if (i === 0 && Array.isArray(s.parts) && s.parts.length > 1) {
-            s.parts.forEach(function (part, k) {
-              if (k > 0) td.appendChild(document.createElement("wbr"));
-              td.appendChild(document.createTextNode(part));
-            });
-          } else if (i === 1) {
+          if (i === 1) {
             // 「第 N 集 /」與「共 M 集」各自不拆開，只能在斜線後換行
             const a = document.createElement("span");
             a.className = "u";
