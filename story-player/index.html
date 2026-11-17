@@ -179,6 +179,16 @@
       overflow: hidden;
     }
     .card2:hover, .card2:focus-visible { background: var(--yellow); color: #000; }
+    /* 鍵盤選到的卡片：黃底黑字＋粗白框 */
+    .card2.kbd-sel {
+      background: var(--yellow);
+      color: #000;
+      outline: 7px solid #fff;
+      outline-offset: 1px;
+      position: relative;
+      z-index: 1;
+    }
+    .card2.kbd-sel .meta2, .card2.kbd-sel .meta2 .st { color: #000; }
     .card2:hover .meta2, .card2:focus-visible .meta2 { color: #000; }
     .card2 .name2 {
       display: block;
@@ -429,7 +439,7 @@
     .hist-table th { color: #aaa; font-weight: 700; font-size: 26px; background: #111; }
     .hist-table tbody tr { cursor: pointer; }
     .hist-table tbody tr:hover { background: #1c1c1c; }
-    .hist-table td.title { color: #fff; font-weight: 700; }
+    .hist-table td.title { color: #fff; font-weight: 700; word-break: keep-all; overflow-wrap: normal; }
     .hist-table td.when { word-break: keep-all; overflow-wrap: normal; }
     .hist-table td.pos, .hist-table td.hist-done, .hist-table td.hist-half { white-space: nowrap; }
     .hist-done { color: #8fd18f; }
@@ -539,7 +549,7 @@
   <div id="app"></div>
   <div id="seek-flash" class="seek-flash" aria-live="polite"><span></span></div>
   <script>
-  const DATA = [{"id":"PLDZOKA3TCPZ0","name":"玄學姑奶奶","videos":["wJdYxWED288","a3mhHJE6X_4","SxUiTQIXLcE","Pt5ozncKyk8","EdjP0XlO3aU","hIXnL5SNw0I","m0aBzf3aulw","nlNtKGlKNKU","gCv6YzJQoU0"]},{"id":"PLQHHAaW5RtsI","name":"把鬼嚇死了","videos":["glU6WNUSr4k","g4X8-_qJRQQ","TQOkR0PK8Tg","GQST4EdfICY","gNnGSeneH0I","GQRkofYbekc"]},{"id":"PLfMn0z3sds0g","name":"莘莘不息","videos":["izVjDIN719k","WFzY1kMXX0M","VsBfqBjIz84","EFRLpkT-n9U","ZzSW2k83LTg","pqopUmUrQ6M","_DOhQJiQEx8"]},{"id":"PLHZIQz2B6zZ4","name":"玄門千金下山","videos":["C84lYyvZhM4","O9oW7354OW4","35zz9bV1DGI","FDUXEpXlAIA","Q4WBeR9kKB8","MAAcCORUXNE","9CQPkqzYZ7Q"]},{"id":"PLWhc5bDq-xt0","name":"道士當法醫","videos":["Gy8uQxen-S0","jPwzeDPpsg8","vi_uOXcGGbw","KH9dWUrVfUw"]},{"id":"PLQ5G_9Ge_2Vw","name":"考研繼承道觀","videos":["QzrbhkRUSns","OmpXd-Atf0o","ct1yU7QFsgM","oSO_MxlOK_s","0qh7-qtiNwk","elmPgHtsAkg"]},{"id":"PLP7s2fN-LLNM","name":"上學兼職抓鬼","videos":["cU9uqdwJaPI","6diCzfmvhwo","w6BblKFPdsE","cLS9_2_hBcs","cYDKnktwpoo"]},{"id":"PLOKBhCLDPAyc","name":"勸鬼從良","videos":["BOnnS-pjiHI","939y4HwITdo","hGGRvz-UXpg","IvReYb9HrS4","MpNKtsJht4U"]},{"id":"PLMOAMKRtOcKw","name":"玄門女天師","videos":["uGIjNMu2BDU","vsU2pXviojw","Xcttir8Lk3I","PjMkprvNzC0","NT993ty4Z-0","u1w520GrrhE"]},{"id":"PLHrwzJZszVpM","name":"算命揭老底","videos":["LCicBLEasnE","fFKxQaovVAQ","L8jknHGE4Kg","dJJwOKU4Q-0","svSNjeBT_Ww","qdCUOxuhfBs","YYgdz0rN_BE","iHmaXLWglxk"]},{"id":"PLC0c3CQFVGSnFzRvNw77MLlqaZjmRBnmD","name":"轉行當道士","videos":["c_s7ryzrajc","JCJnnltmF5Y","4Rf8WXWLKys","cxg8ov95guo","7xbg8_124UE"]},{"id":"PLC0c3CQFVGSmri_j7DVQZIqvnRsCsBLVt","name":"娛樂圈天師","videos":["pGcN6lWWbAo","SFvUkRmDxNI","JcYbiSp5T9g","gDAkkgWAP_U","KfQKXWgbpqc","2dmMasTyE5o","C653vHCRjZ8"]},{"id":"PLC0c3CQFVGSlrkPrLGNLW6qcSxW-bsX0o","name":"偷命師","videos":["Z1tO6FTP7aE","NEs5Tr8QKUM","eG41MQZeRn4","jjNPGJl93TM","9BFIVsCyGgA","btIGHdyv16o"]},{"id":"PLRpsSd4gG1h0","name":"鬼王道士","videos":["myEJo68mrMM","KzM5iiYAKjM","0kmYitXbj8s","EPeso8r3Fhk"]},{"id":"PLB_ObqGHKy98","name":"留學兼職捉鬼","videos":["6JVZ9AlcfWA","oaH5gtWDQzo","r-DxRXTfYBI","gTDk-qpgCWk","LnDXg2rGsKc","cMXCwbOvZ9M","x5bV3IDby0A","c_OAocRKowE","DK1S7rSxeHg","_xqdLqAvpHc"]},{"id":"PLC0c3CQFVGSlZmAJWP4N2IZsDKSg1kbQw","name":"輪迴道姑","videos":["OIO_Ka58xaU","DGP6RnfPgUE","HJoImP0fkXM","YclS3IhR-60","r55S_IBBnJw","lr9jIUU52kY","Qc5AAUaLOXQ","dD3MX1AhC9k"]},{"id":"PLC0c3CQFVGSkXM2DGFk75sNlYHGki8WV1","name":"玄門小姑奶奶","videos":["5UC7Z2NO2f0","rHraBwBkIxg","Wo7tcyUlEBw","VDb0zADoJz0","pFcIlwnKqDM","WOHosjWiO-E","Ezl6AqPPMyk","mAfJnYMVklA","ab0N3XDawuE"]},{"id":"PLC0c3CQFVGSlGX9sBJ9oc_-atpSfTz5-1","name":"玄學破案","videos":["RzeqKQMiUUA","3JYPM9CosGw","n8DbgYa27Ds","8ZW5B0vNs3A","q3u1EwioKpc","7PRJbHhHOJY","24JysaJbmOc","Y-050KdHX4M","usp9qNqWw5E","MDrfQ0EawMY","i7GVU2NV3mg","IJCcMHrEmWg","9HWo9pEtEtc","e090Yg8pig8","LMV6vJmuWSo"]},{"id":"PLC0c3CQFVGSmWhpHlM_SWlmgU_RNsmqST","name":"道士下山","videos":["Mv8gB2DTyP8","NEAVYWamSbY","J7scxiNRlxA","SaNO8DBRnYo","ihHgssNu16w","7mbUkbH3Rjg","3x2sCBWo98s"]},{"id":"PLC0c3CQFVGSkK3DpO4rkpp5FUB0VV5ZcV","name":"玄門小師妹","videos":["3I5XEp-b5_Q","TJM_BMvbwfE","oXAQA5kQmGM","CiLKoTwZtMI","bhnKI58y_98","Bb033FctLZA","lBJMcYXadUk","_ej6o3a4Sic","LwHyp-PWGn8","_kqbpEddn_U","YSy1KIu2Omk","PkbgaYxl7q8","b1edaSWxwco"]},{"id":"PLC0c3CQFVGSkHEYgx_XMmHH-Q95sormpy","name":"溜達道士","videos":["na2db_03zfQ","sEVtm33j_NA","eavypyXZmk4"]},{"id":"PLC0c3CQFVGSmLjwjRA4UAAfaGyAJE6xeX","name":"八卦大師","videos":["oZ_pQhldlOk","ZeusmGLoA5A","Q9CBl9jPEYE","iYFxMvseXM0","qKuLaXf-zz8","kfAcKYRYnxY","cohMiJvVwHo","hI-i_-yc1aQ","QRvWkjapezs","rQP7H0ESqbc","P8b2zuEotuo","_rPFXamc80A","-vxKBPubB2g","wR2-Nvd5RiU","W8EJzC6j0eo","bzgQfKEnzxc","nYhNPpST8Fo","dbfsEcvZlVc","Y1dnV2iD4E4"]},{"id":"PLC0c3CQFVGSmnWE2alfSGNu6hBLGdgQKO","name":"高中生大師","videos":["gktJrYwUmAg","eiQ_Dz7AiTo","N4xHydOe0F8","76vDs8emGwk","jcWkgT7asRQ","I_fcVALNShY","JuX2d3TYNIA","u9Zbz0TD4AI","IqbpQ9t4IS4","nwP7BuHybfY","JtvUhXHFL4I","D4E5ms8IxQM"]},{"id":"PLC0c3CQFVGSnUhx5zHs3x4l_K396vqrMv","name":"想算命先拜師","videos":["T0UPQMdQkVQ","hRd7oO4ib2E","_OjlZqwhRi4","8aY93A_R3Mw","LkUc84ypdEw","Gv6heTaqdCg","ZW2S7yibqO0","SDsCsL2mYMI","WDo0E98rs5Q","3XV5xL2RuF0","wcBvjAFHIwU","NC0cN06RZ9k","QqAICXja864","KN9UevbZ5-U","Vx1eZbHMBNk","t9DgcYbt2aE","HjX4lXyTvuU","2pZopRbYkqM","erWps2L0wto","MtYeiHmhICA","EDwLcR-32-I","OQ5xsmzjC0o","dwIBWAHxkkI","fRbg0J8ZY7I","Hc90IGN-RM4"]},{"id":"PLC0c3CQFVGSkIpTMRJ5VS1VjM5p_nw1TT","name":"風水捉鬼","videos":["a9fy0Sm1snc","F0ERd4vX_QY","y4zp0KSnwE0","vuE0ifkrwzk","hdLSr0JMRBg"]},{"id":"PLC0c3CQFVGSlvksQqmN-BGwFeZcUp1zjf","name":"玄學大佬下山","videos":["Zvngw2npaOM","gIrW5cbCqgM","gPia18OCHvA","F6I95N3mqso","tIrRTmqcS8U","vvJIOc3QB_Y","wJokdq8n0D4","bQJ_p0V6VKU","KF53dfQetS0","dRq8EFIg44Q","KcKtHATpjp4"]},{"id":"PLC0c3CQFVGSmE6b9QRhsq3QDfS2QtkMO3","name":"國寵天師","videos":["Fb1TBAFeJiw","iRkDtItpp94","7GajJqlsVBI","VnWYPLWqceY","kzvHzObtpWs","316BFBqNw0w","tOPEn2A0E7E","3XVXEiAxt8I","hNoD2qQEoWI","QsYUd4kAryw"]},{"id":"PLC0c3CQFVGSmLxGpF8tR7NUVMzXD2LLdo","name":"玄玄擺攤","videos":["KiIzKBNV_6s","FH5SCw15qRs","HAmv0WxCif0","GsadLZItZ7E","rsQeW4rwrJg","6r6eiDHnDzc","lYA0aONJILc","qCidwDRDzIE","fHfwjA9i7p0","z6kcRZRnqiQ","KzQMHzl-6KU","eypYrkbmhsg","kadNrHc3phM","iRk-1UThDlE","bYeMN_PntpM","QUCddvmbFtA","fo3hTmkiyzg","-bCE7WAIBuk"]},{"id":"PLC0c3CQFVGSlZgt9EtRAmVeZP8bDQtaXX","name":"大師來自地府","videos":["GIJcHTL9SPY","v4teQ_v4j_w","wVj4m1ISWBY","po4xezkkc_U","BgPXRUkaUbk","bBvXtTyCO48","p3Zgr0tGCUs","uMvm1kwQwZw","TTAX828PXQM","OBiWCBZg9nA","hULyhnAt_H4"]},{"id":"PLC0c3CQFVGSmNpg5dGzFU9FyVsb-VmVYv","name":"一卦暴富","videos":["YWRrVLrONXM","7rK49D-VQPY","kQVjPqAsTcI","1QfJLtFQ5KU","PmwaVUcIVuU","Yxnx8wXDCOI","CIwOadl5ITk","lqInRVSVteQ","_YnLcycJ8KM","R8yCZeI6BSs","WDEEvYR1cew","QC1gFufqF20","VDVSwq_37HU","ORwSSBFiNMg","vwnPHl7wirg","2VYF0RMdn4Q"]},{"id":"PLC0c3CQFVGSlf34L4ZBnjjIecezH4EkrI","name":"火爆道姑","videos":["mOEZFWyXIM4","eUKL34TV1R4","uOd8mZF1QDc","hrJ9FjHfyRE","KaGiFWO6eIo","xQ926bckjVU","h6HC6XM7oEg","PCc3yHynd9c","DnsHIdznfX8","3UaAvQO827A","Pf3lyTfo7Ws","0CJuhcbsziY","yyQVXeGoyr4","M4OU4rbf5tc","LziUFlnXGhY","vaK1YkaA0BA","3Pbx9rtSFak"]},{"id":"PLC0c3CQFVGSlt8vJSEEgBzA5LmBMjSwOH","name":"玄學少女","videos":["JQpWh5tnK3E","6rPjJfoR9vk","h_alWAZWI8s","_s-h_eRlXiU","rny9rmgz_H8","8EkoWpsKaeI","ecztY6-PcGA","xeH-nMSe_tQ","S-q8San-MHA","vQYnxhyny-U","lchkhP-Y3cs","35QXLHTRm-M","H2TzRsVUTAY","Ki7qnzKCImw"]},{"id":"PLC0c3CQFVGSmSpEgpBewjhaIz4DAByMku","name":"團寵神棍","videos":["x2vokSksMP8","-SYszh1wzME","r3UjbqqwBH8","ZvtUjoHJe7g","WsT9F44_gUc","x_ccNnC4Tso","DEAEmm_-i74","iFPDs21d9Vk","kBgYDUresTE","at7vX9FaeWo","WANs8x7ovr0","CQmnX1_WM_w","PyjfmzIh3-g","Lxv2RRZvv0Y","G6jqxvwPUhA","i9erGlmHtEg","RmVi2rMlcwY","IAlvITQzpK8","AEzV7PKX9rM","3kVomDpbaNA","dtO0ckcxARg","B4j8050PxEw","eBLSMTSxUs4"]},{"id":"PLC0c3CQFVGSlALx7WmnAU6cJQyrnQh-LM","name":"神算萌妻","videos":["OPJ-hZNKiA0","jif6BlEnodA","0Y-CnphUJtk","bc250MhOK18","kZg59y7b9Pg","Lrr-jFbxknw","1n61RKqzT38","HBeAwAZPbIY","-g2M8c_Aukg","gMw9FjuRK2c","9GdV1GZOFA0","4eCSaJICq2I","BF8Y9rk6dis","RBaSVqe0k-s","Ce1w9mmk-m0","7pajB0oDZ34","0J1pUeKjU_0","GzmXAAMNhTw","A9XCwtcpRl8","NYoxQ7tdqW0","ggAnBz2cAxI","tKqqnZyWF2M","MiECNYQMB-I","De0erErVzbY","0PVd7ptKHds","41-Y4Q15nww","2q1CkjCPwFo","aDSEEL_Cwx4","dx5f3dlBqjA","AuIpRrZSuJc","NUmPGSQ7tAk","GoDdXcyqCPo","xOXSIsFTA60"]},{"id":"PLC0c3CQFVGSkOVh8oRYhcJ0bnwTlIVnTj","name":"真千金是玄門祖宗","videos":["konc6gXk9bc","XErVkEG52GY","aXxpJAaHlzs","tcjziCXzTbM","IF-LxwxuLnI","87WZasjedjk","WfRDb22giBs","hQ4NpMRjWEA","WfgCz40c9ic"]},{"id":"PLC0c3CQFVGSn1ERQ4RmChBd_dygh1bnDA","name":"地攤玄學","videos":["7llRjSvj-NU","L3D4_uQ52HQ","484nfgN7yuI","hK0GinFrNjY","GwvjNb7FQ44","pnjLeeS9-Ac","_W-zrollB3M","EywiIooZjbw","3UQlsdKbTyA","8EUKJ1IHn70","v_vbKcFdYvk","eamHgUdFXaM","0FjvHNkefss","LXeK2KmKyEA","Om7vHW2NZXw","aJ8ZwgjbSec","8TdtQq20k64","CP-BSbnX5B8","zbOIxphMQfU","_vLhw3-c3lA","QAVoSg7q4X4","ejb4PKmThys","me7hY0qKKj4","E-oC19cEe2A","XFc-jh23Fxg","0RuEWkNuKP8","-oIU15PF0Yc","hUe7MziWKws","wyfou3WWcZw"]},{"id":"PLC0c3CQFVGSkBfgBGtpjrn10xfOvJa4DT","name":"玄學千金下山","videos":["rmVw57aud0g","aCHPw2gIwb4","WH8eDwWT0Go","b4hHFGCWzto","Wr-9DwtIb78","CyUpR8RVJa4"]},{"id":"PLC0c3CQFVGSnSVmjV2q_edq9aCPCzANQx","name":"玄學千金斷親緣","videos":["VFWsdrLuni4","JkD9xrMWYwY","jz1GjXw_rqo","vJy4IRKXKXA","10ZoQfCEVh0","d1Emk6SRcjk","p6cyT-D_ylM"]},{"id":"PLC0c3CQFVGSlEam3FvXbQ7INSmX4rQWCp","name":"玄學小祖","videos":["Aw9dylcaU8c","marW7gtTLco","kOClmRHygzo","V2Os4t7nUiA","m7je_V9UpDI","-k4P06ia_SQ","G7ru2fCUW4Y","zyM9L7dYfQE","u_0yoKbK2hs","ZrgiJaxSq5c","uipEo0C79o8","jU4mNwEJDhQ"]},{"id":"PLC0c3CQFVGSnPNEbN_2KIvps36g5_Kmkf","name":"團寵玄學大佬","videos":["I02ISFr7xtU","rRfjmziTO50","dmg-TfV41IQ","NQxS8WVGFBM","8odi6CoVU2Y","BLi1OI5hU2E","VRB1PmFEi5o","z2OfguebAcU","lWNrKsPBTUs"]},{"id":"PLC0c3CQFVGSmGPf6-zq2mU6FawaGMw-4H","name":"替嫁玄學大佬","videos":["oa5oxlSRxmY","oSo0BhOPjw4","qYlii7Ar91c","m60vadVnI0U","kbu1IekBxhQ","MWthrmeE4WQ","U_iLfHrB4Es","pG1bKQYB1f0","CwTn6hLMOfI","RnoWNPVxFCg","PgEEcnWjSJQ"]},{"id":"PLC0c3CQFVGSn7Vnh3hsLFFpgL3d7WC12p","name":"龍骨村祭靈鎖","videos":["qyfiAQlsw5Q","HorqbHYt-ro"]},{"id":"PLC0c3CQFVGSnijsYCstByNLb2QQssP8jh","name":"千金一卦","videos":["E3E3gqqUxVY","noUJkI4JMNU","mXyNR40tY1c","zfKpPm4B-h4","Ft3eoW8anU0","PcrMWru1wHE","weDm3P_TYu4","p9Tm5tOzZR4","gstSHqXpcuo","QpUKkSX76tc","cKUvjZBgMyA","eI0kWWTv5Yk","t5N6AJZqTNs","yi4xx-ZzBDE","IepkwgBx0GI","_4aRI50PrTI","WBLa-xnp1hw","HbwWAq_23AA","RFVwfN32lPg","AVgQ9pCoeJw","c6QK23xKvAk","RJFpc-f-hag","W5vz6_hcPS8","lcLBg8nvEfA","MoX9ZLWDz8c","CxD89AN8-es","TGBch7I5bqA","qOhBvc0KPoI","ihPlyvuH70w"]},{"id":"PLC0c3CQFVGSn-PbPLLh2rm-aI5VNMVZ7w","name":"真千金鬼見愁","videos":["FEL5OWsl-Zo","iNlefhJSNDI","GiE6x2jLXvI","5SD2_DthdXU","rypgnjdlvbE","TifxBzvZzhc","Mq0CnCcOixk","vUAdD3GP1bo","1MmEVHMaJBw","1SxRlL5PwFw","sb4p2OieUkg","TTLUp8NQnb0","Dqd8iRhj514","d6JwL9U0Utc","Qm0lcLil5gs","wpqY6on0R5k","PjUCiQ3FRhk","YPRcKYLXviA","9dkVedy9-OE","_0wbWAgKGYk","d75IHeKMveQ","eAdpLRS57dc","49YxdKdRfDE","7Pm6_XxCYhs"]},{"id":"PLC0c3CQFVGSnMt54Tts6uE5MzxeWx12Mn","name":"地府公務員","videos":["Mh_QmiWmBwA","NIIEJd1vlmE","EibYzWikerg","mTHbQ2lLUUs","CK1UYfRMpzo","YK-KQwzv1MI","q5z1jeGZCm8","5hC6SEdw6tc","lw6RG4o6kOw","AKrOrliDBy4","xFrtve8c72Y","GUy2n1faxZc","NcDaEhYa_AU","-lSFdRBNkEI","ehRgRRP_fI0","HpreC3l7fYI","MnLzL-7CzpI"]},{"id":"PLC0c3CQFVGSkmLcMxYTj9vR_Sa1p-V2Zl","name":"算心算命","videos":["B8l5kcXYRSk","zmu3qwqq5bI","SGRs8xJHma8","KfciiJBXAx8","6xQ4he6z6x4","lH3pjS60Z7Y","NQZmNjeT4Kk","bjgIB_BCspU","oEbkfxkMl8o","6wZ6GSBQca4","Jg6iqiCwsI0","QOOmM_WNgpA","GbZobaA2Roo","Alc7Dt9W7vI","ohoEdnhu1pU","QLx-GgRoa5c","mqH8GN6935c","r0-V20IpCmw","SNMA5-RKqkQ","B5rZ_A19uB0","ymE2kW7TrWw","wSz5UfImhSw","T6oSLSYXid4","sVc0UtCI-Ic","YiacX3Goxyc","5IchInRoWTs","8MbDYEVJI4I","C7VRGEnMB1c","bT9z2AtmLQw","qlORPmky4_E","DnGhZYoK938","dZy9KJhA08Y","PZ8aZ4Vrb4c"]},{"id":"PLC0c3CQFVGSkPzquNQBjtUmke6hPveYI9","name":"五行缺錢","videos":["xFch9ZFJsBg","r5W1-_aWVl4","bcQgtF1-NKM","Q7p7bqA15KA","9DtRf1_vizQ","7-9Pd1FP2GY","jN2g7QSZ11M","WP1PGfhxQbE","lBj8jkvNmyw","eOjse2e5Dwo","z4QR_R10CSw","Ic8RMOIg5VY","27OZD-SHxMM","xlYw_Ey920E","3Q2SnbjExNY","x2UCedfqfEE","MgSja0BPTgc","KJgrEvW2-eM","xwjKdKbvF-M","UJDUAao2MFg","6FafQ-0JPW0","3d1ePHEgRPM","CxcDicLYcS8","_0i2-G1v050","tAIfsUU27HI","j6jO8kKop18","B45eGukxSP4","DMSzEDZcG0E","Npul1O7e-Ys","23qcHN6j72s","suNq5HISYcw"]},{"id":"PLC0c3CQFVGSmIQlgTKBhm-GsDX0opmVvB","name":"卦行天下","videos":["D95kXSh-shU","HrE7o0gyGMU","mCv-PwOzgfQ","hVA4mDJJuWw","WnLFSEJrmPo","6O6sh1rEKhQ","4kyvvFNyPlA","CWhHJ2yUH8g","l2tdX_ehxl0","UePphMRvXWw","6LuRcqQJtG8","fLSD7l3EudQ","mGKnS2oBNUM","YdmD2EwhSxU","LndRbIL1-S8","2ex9I3FRvOY","hEmANwFQlU0","6SlXcLE-Uqw","gDilNjR78o0","wgzokS6ZKOs","_b1-XzrIcgA","3_fSmzJKZM8","nUVSGhoAq3w","dH8w-6vjHW4","qHU_OzjFFB0","dB2fZ1DFGeY","M4Oxr8eg7AI","05GoLoXbGLs","iuajYgC3x3w","bNkEjXmjnUA","bllPbpyFDX4","eCA-ia9hvDo","XMwZghzaEl4","Yf_FLNmn8Fc"]},{"id":"PLC0c3CQFVGSk1KbaBqdGqXGbnV7VaJ_22","name":"天師傳人","videos":["DJfDa65LBuY","3ZMKvRIQtoo","XoRTJsUjybk","S2VoYwFyV-o","DpemE1wKfJY","R3hLn6ifYcM","HTz6u501hXw","SlQ1L7avbMs"]},{"id":"PLC0c3CQFVGSlpIs2i5DJ1BKS9PtNzzV1W","name":"出馬仙","videos":["7S6NOp6wYsQ","JYQz2hcrlok","ZDZVMkL9N2c","jJNvTNqdUu8","ChDIXLSMSTc","6bGm0YRB2rE"]},{"id":"PLC0c3CQFVGSlaffKHjjrIUxe91gf9bY4_","name":"算命律師","videos":["MWFcmsrsmck","htCjj4tVqGM","499ul9GTRrU","S__32wz7rEc","I7ByrOnVgeg","JtqjZeAkw9E","TJ58rIjAhqI","1Q9BmK4IUWc","Nc_WCHJ6ZTo","3NhxHc2kUjY","L-Y6iY-_a9U","D5wZj3TWni8","FkLKvUimLEg","s_HkcjtgqCs","ds-tl-NBdEk","orxlpIU7pyk","KSDSiyrA4p4","Ygt2Y1Fa6-w","OkTPf_wEx-E","nvUVdMAiB0Y","8AO5g7pJ8Ps","3dtqqjyfs0c","o5uIGHOkibI","hrJkMmQ1E_U","b5aB_rcpCFo","ZI7QLf03Kyw","ZMEPJ-d-xmY","sdQA0zlYAGU","XrT26LEZmSE","-XPlVbEPrQE","7PQuatbP810","P1emdrZIuVM","GAVEZxwytEw","ykpMIRG29R4","jJUf0lUp6PY"]},{"id":"PLC0c3CQFVGSl_JyNzcmxAdC9Uu85bimL-","name":"天師是女鬼","videos":["7RZJ55Pcjjw","xJaEopL5k3A","on7Hu40QP_Q","HQB7vnWQqW0","3pFZN7yzKP8","w_52XGC7FZk","EbYNox_NdNc","pJjMe8k7De8"]},{"id":"PLC0c3CQFVGSnyYPMJYNIOrgr9lAlnsaMZ","name":"玄學千金","videos":["jtFAPNggjME","gQkD7Ls71SE","q1w9l8S1ocM","V8bpL2WUS5U","yLyfgNJNbxI","zhEot76DcIU","Hj1tS2_ZYsA","3twTNKC9MxY","KH0-1DqHYGw","YCxCFpimL1U","a9O3ZragRLA","SKN7YVT-ra0","skgMP4B79Kg","wUJyR9DpN-k","pSnK4KMavwg","RBSMx86SdnM","v4FxGLlkfRw","w90kn4gD1Y8"]},{"id":"PLC0c3CQFVGSlJ8QQMTXuFMtR1Ovyet5eb","name":"總裁夫人擺攤算命","videos":["SRdglyR7EVI","2LzRV5mrG8w","PWzlg0UpgbU","Bq0dDbTJvMc","ecmyKashc8A","aWxp-PTRBVc","i5--uUEcOUc","QPn7NbVLZ44","nY1JyvcP7F0","cz6oAqPQ_LM","ckSnWfhBWkY","88NeUGLU0_U","10nSg603FV0","Gy-j4_GW7yk","U0jeNHMz-as","6ZAv3OL-cGY","-n4t5asfR-k","6PsbhvM2oso","1gHCbG53iiw","Z0Fg2IsddMI","h459qxCnyPA","GLPBiYJyhWs","UWA95lqfVm0","U-GkS0k6zdc","o7KxR0Uw4qA","DriPO54iqtc","ri-qYOqI4jo","hI60QRtyCoU","MqkeMPeforU","KPLXOOEO0bI"]},{"id":"PLC0c3CQFVGSmVKszuiwv_gA9uQdkk8odn","name":"千金小天師","videos":["g1ahKr7Md08","qNZ2g9rNTvk","gYEygQvN5X4","L5MOTb4nen4","EAdnjSZMT1I","gIuEm9rvVNY","KYiPCPNNK4I","X_zqYT-pnkg","0PTpcmtBrhY","c4zQJEMpsGE","uf-BlPRsJrI","xU-koju6fLM","NVyDaHK-paw","EgX63pBzt1k","Rk5_vCeiixw","1TsGLqF9ClU","dzRqT7SDKjc","lyHhr-rHlQQ","v2e7ClBssZ0"]},{"id":"PLC0c3CQFVGSmpFaRSYzMUUKOo1FN-GWbC","name":"通靈師","videos":["ajb5kbQk_LE","1nA6bbYQcDk","06GZdU6iZl4"]},{"id":"PLC0c3CQFVGSnrL_ebmlcV0lw529VSqcz8","name":"小道士被迫下山","videos":["v0904Qnz-BE","m2GzonjbQO4","dkSLGwCDwLc","Ps_f5ep2z-I","yXbQMI-Z9Cw","kZYCcg6u7Tc","QzqnL4aMtSI","p9vwVQj2BFo","uOuurT3aYgs","VcWWcVVfV9s","yZk5InAsSo0","y0UwUULz-gE","Vp9yCbXdzoo","Lv1JBA0b9dA"]},{"id":"PLC0c3CQFVGSm_V3lx6C_F09YHZBSaVPLO","name":"人棺","videos":["_IgN0fOvoo0","iu0jjNZj1os","jnnJYeJhlyI","TX8lZdXKBi0"]},{"id":"PLC0c3CQFVGSnSnWCU4ygK74HH-R2FO3x7","name":"胤都異妖錄","videos":["8xjW1bgHOgI"]},{"id":"PLC0c3CQFVGSnNRmA92FkSr66jSJyG63gU","name":"紙紮鋪","videos":["XhtFx57fRAM","7vwQ0ZOKJ24","kFkhB8iidqQ"]},{"id":"PLC0c3CQFVGSlOWR3tVtXh7KqdfwvG4OAW","name":"地師少女","videos":["olFbEe8P5ZA","2aSZpkvUTlU","SpqhTtu5qc4","z35cvVU-r1I","Y7LFpmGWyfU","9rAYoByWNEw","7rn3t4GyoyQ"]},{"id":"PLC0c3CQFVGSmAJI2L2URMUeXgYMEKebx2","name":"打魂鞭系列","videos":["v0Yice_wKpQ","iLOyHcyAa5o","1TZMC-X-sfY"]},{"id":"PLC0c3CQFVGSmdLS1nZFTj8t-4jadoFJVR","name":"靈珠傳系列","videos":["SDeOk1-ROCQ","uKAq8PDj4Nw","oMGgT1KCkXw","QDhatnf7kIA","tYAGc667YOY","KYAwP1yzMJ0","-NpAj66bxpE","5U2O5m9lkm4","EEk9219WDMU","SbJJyLFotG0","y78X5wbxNS4","wbzOcfACxAc","-kqWI3_E7yY","F04Z2driZfY","vMP6OvP0UxY"]}];
+  const DATA = [{"id":"PLDZOKA3TCPZ0","name":"玄學姑奶奶","parts":["玄學","姑奶奶"],"videos":["wJdYxWED288","a3mhHJE6X_4","SxUiTQIXLcE","Pt5ozncKyk8","EdjP0XlO3aU","hIXnL5SNw0I","m0aBzf3aulw","nlNtKGlKNKU","gCv6YzJQoU0"]},{"id":"PLQHHAaW5RtsI","name":"把鬼嚇死了","parts":["把鬼嚇死了"],"videos":["glU6WNUSr4k","g4X8-_qJRQQ","TQOkR0PK8Tg","GQST4EdfICY","gNnGSeneH0I","GQRkofYbekc"]},{"id":"PLfMn0z3sds0g","name":"莘莘不息","parts":["莘莘","不息"],"videos":["izVjDIN719k","WFzY1kMXX0M","VsBfqBjIz84","EFRLpkT-n9U","ZzSW2k83LTg","pqopUmUrQ6M","_DOhQJiQEx8"]},{"id":"PLHZIQz2B6zZ4","name":"玄門千金下山","parts":["玄門","千金","下山"],"videos":["C84lYyvZhM4","O9oW7354OW4","35zz9bV1DGI","FDUXEpXlAIA","Q4WBeR9kKB8","MAAcCORUXNE","9CQPkqzYZ7Q"]},{"id":"PLWhc5bDq-xt0","name":"道士當法醫","parts":["道士","當法醫"],"videos":["Gy8uQxen-S0","jPwzeDPpsg8","vi_uOXcGGbw","KH9dWUrVfUw"]},{"id":"PLQ5G_9Ge_2Vw","name":"考研繼承道觀","parts":["考研","繼承","道觀"],"videos":["QzrbhkRUSns","OmpXd-Atf0o","ct1yU7QFsgM","oSO_MxlOK_s","0qh7-qtiNwk","elmPgHtsAkg"]},{"id":"PLP7s2fN-LLNM","name":"上學兼職抓鬼","parts":["上學","兼職","抓鬼"],"videos":["cU9uqdwJaPI","6diCzfmvhwo","w6BblKFPdsE","cLS9_2_hBcs","cYDKnktwpoo"]},{"id":"PLOKBhCLDPAyc","name":"勸鬼從良","parts":["勸鬼","從良"],"videos":["BOnnS-pjiHI","939y4HwITdo","hGGRvz-UXpg","IvReYb9HrS4","MpNKtsJht4U"]},{"id":"PLMOAMKRtOcKw","name":"玄門女天師","parts":["玄門","女天師"],"videos":["uGIjNMu2BDU","vsU2pXviojw","Xcttir8Lk3I","PjMkprvNzC0","NT993ty4Z-0","u1w520GrrhE"]},{"id":"PLHrwzJZszVpM","name":"算命揭老底","parts":["算命","揭老底"],"videos":["LCicBLEasnE","fFKxQaovVAQ","L8jknHGE4Kg","dJJwOKU4Q-0","svSNjeBT_Ww","qdCUOxuhfBs","YYgdz0rN_BE","iHmaXLWglxk"]},{"id":"PLC0c3CQFVGSnFzRvNw77MLlqaZjmRBnmD","name":"轉行當道士","parts":["轉行","當道士"],"videos":["c_s7ryzrajc","JCJnnltmF5Y","4Rf8WXWLKys","cxg8ov95guo","7xbg8_124UE"]},{"id":"PLC0c3CQFVGSmri_j7DVQZIqvnRsCsBLVt","name":"娛樂圈天師","parts":["娛樂圈","天師"],"videos":["pGcN6lWWbAo","SFvUkRmDxNI","JcYbiSp5T9g","gDAkkgWAP_U","KfQKXWgbpqc","2dmMasTyE5o","C653vHCRjZ8"]},{"id":"PLC0c3CQFVGSlrkPrLGNLW6qcSxW-bsX0o","name":"偷命師","parts":["偷命師"],"videos":["Z1tO6FTP7aE","NEs5Tr8QKUM","eG41MQZeRn4","jjNPGJl93TM","9BFIVsCyGgA","btIGHdyv16o"]},{"id":"PLRpsSd4gG1h0","name":"鬼王道士","parts":["鬼王道士"],"videos":["myEJo68mrMM","KzM5iiYAKjM","0kmYitXbj8s","EPeso8r3Fhk"]},{"id":"PLB_ObqGHKy98","name":"留學兼職捉鬼","parts":["留學","兼職捉鬼"],"videos":["6JVZ9AlcfWA","oaH5gtWDQzo","r-DxRXTfYBI","gTDk-qpgCWk","LnDXg2rGsKc","cMXCwbOvZ9M","x5bV3IDby0A","c_OAocRKowE","DK1S7rSxeHg","_xqdLqAvpHc"]},{"id":"PLC0c3CQFVGSlZmAJWP4N2IZsDKSg1kbQw","name":"輪迴道姑","parts":["輪迴","道姑"],"videos":["OIO_Ka58xaU","DGP6RnfPgUE","HJoImP0fkXM","YclS3IhR-60","r55S_IBBnJw","lr9jIUU52kY","Qc5AAUaLOXQ","dD3MX1AhC9k"]},{"id":"PLC0c3CQFVGSkXM2DGFk75sNlYHGki8WV1","name":"玄門小姑奶奶","parts":["玄門","小姑奶奶"],"videos":["5UC7Z2NO2f0","rHraBwBkIxg","Wo7tcyUlEBw","VDb0zADoJz0","pFcIlwnKqDM","WOHosjWiO-E","Ezl6AqPPMyk","mAfJnYMVklA","ab0N3XDawuE"]},{"id":"PLC0c3CQFVGSlGX9sBJ9oc_-atpSfTz5-1","name":"玄學破案","parts":["玄學","破案"],"videos":["RzeqKQMiUUA","3JYPM9CosGw","n8DbgYa27Ds","8ZW5B0vNs3A","q3u1EwioKpc","7PRJbHhHOJY","24JysaJbmOc","Y-050KdHX4M","usp9qNqWw5E","MDrfQ0EawMY","i7GVU2NV3mg","IJCcMHrEmWg","9HWo9pEtEtc","e090Yg8pig8","LMV6vJmuWSo"]},{"id":"PLC0c3CQFVGSmWhpHlM_SWlmgU_RNsmqST","name":"道士下山","parts":["道士","下山"],"videos":["Mv8gB2DTyP8","NEAVYWamSbY","J7scxiNRlxA","SaNO8DBRnYo","ihHgssNu16w","7mbUkbH3Rjg","3x2sCBWo98s"]},{"id":"PLC0c3CQFVGSkK3DpO4rkpp5FUB0VV5ZcV","name":"玄門小師妹","parts":["玄門","小師妹"],"videos":["3I5XEp-b5_Q","TJM_BMvbwfE","oXAQA5kQmGM","CiLKoTwZtMI","bhnKI58y_98","Bb033FctLZA","lBJMcYXadUk","_ej6o3a4Sic","LwHyp-PWGn8","_kqbpEddn_U","YSy1KIu2Omk","PkbgaYxl7q8","b1edaSWxwco"]},{"id":"PLC0c3CQFVGSkHEYgx_XMmHH-Q95sormpy","name":"溜達道士","parts":["溜達","道士"],"videos":["na2db_03zfQ","sEVtm33j_NA","eavypyXZmk4"]},{"id":"PLC0c3CQFVGSmLjwjRA4UAAfaGyAJE6xeX","name":"八卦大師","parts":["八卦","大師"],"videos":["oZ_pQhldlOk","ZeusmGLoA5A","Q9CBl9jPEYE","iYFxMvseXM0","qKuLaXf-zz8","kfAcKYRYnxY","cohMiJvVwHo","hI-i_-yc1aQ","QRvWkjapezs","rQP7H0ESqbc","P8b2zuEotuo","_rPFXamc80A","-vxKBPubB2g","wR2-Nvd5RiU","W8EJzC6j0eo","bzgQfKEnzxc","nYhNPpST8Fo","dbfsEcvZlVc","Y1dnV2iD4E4"]},{"id":"PLC0c3CQFVGSmnWE2alfSGNu6hBLGdgQKO","name":"高中生大師","parts":["高中生","大師"],"videos":["gktJrYwUmAg","eiQ_Dz7AiTo","N4xHydOe0F8","76vDs8emGwk","jcWkgT7asRQ","I_fcVALNShY","JuX2d3TYNIA","u9Zbz0TD4AI","IqbpQ9t4IS4","nwP7BuHybfY","JtvUhXHFL4I","D4E5ms8IxQM"]},{"id":"PLC0c3CQFVGSnUhx5zHs3x4l_K396vqrMv","name":"想算命先拜師","parts":["想算命","先拜師"],"videos":["T0UPQMdQkVQ","hRd7oO4ib2E","_OjlZqwhRi4","8aY93A_R3Mw","LkUc84ypdEw","Gv6heTaqdCg","ZW2S7yibqO0","SDsCsL2mYMI","WDo0E98rs5Q","3XV5xL2RuF0","wcBvjAFHIwU","NC0cN06RZ9k","QqAICXja864","KN9UevbZ5-U","Vx1eZbHMBNk","t9DgcYbt2aE","HjX4lXyTvuU","2pZopRbYkqM","erWps2L0wto","MtYeiHmhICA","EDwLcR-32-I","OQ5xsmzjC0o","dwIBWAHxkkI","fRbg0J8ZY7I","Hc90IGN-RM4"]},{"id":"PLC0c3CQFVGSkIpTMRJ5VS1VjM5p_nw1TT","name":"風水捉鬼","parts":["風水捉鬼"],"videos":["a9fy0Sm1snc","F0ERd4vX_QY","y4zp0KSnwE0","vuE0ifkrwzk","hdLSr0JMRBg"]},{"id":"PLC0c3CQFVGSlvksQqmN-BGwFeZcUp1zjf","name":"玄學大佬下山","parts":["玄學","大佬","下山"],"videos":["Zvngw2npaOM","gIrW5cbCqgM","gPia18OCHvA","F6I95N3mqso","tIrRTmqcS8U","vvJIOc3QB_Y","wJokdq8n0D4","bQJ_p0V6VKU","KF53dfQetS0","dRq8EFIg44Q","KcKtHATpjp4"]},{"id":"PLC0c3CQFVGSmE6b9QRhsq3QDfS2QtkMO3","name":"國寵天師","parts":["國寵","天師"],"videos":["Fb1TBAFeJiw","iRkDtItpp94","7GajJqlsVBI","VnWYPLWqceY","kzvHzObtpWs","316BFBqNw0w","tOPEn2A0E7E","3XVXEiAxt8I","hNoD2qQEoWI","QsYUd4kAryw"]},{"id":"PLC0c3CQFVGSmLxGpF8tR7NUVMzXD2LLdo","name":"玄玄擺攤","parts":["玄玄","擺攤"],"videos":["KiIzKBNV_6s","FH5SCw15qRs","HAmv0WxCif0","GsadLZItZ7E","rsQeW4rwrJg","6r6eiDHnDzc","lYA0aONJILc","qCidwDRDzIE","fHfwjA9i7p0","z6kcRZRnqiQ","KzQMHzl-6KU","eypYrkbmhsg","kadNrHc3phM","iRk-1UThDlE","bYeMN_PntpM","QUCddvmbFtA","fo3hTmkiyzg","-bCE7WAIBuk"]},{"id":"PLC0c3CQFVGSlZgt9EtRAmVeZP8bDQtaXX","name":"大師來自地府","parts":["大師","來自","地府"],"videos":["GIJcHTL9SPY","v4teQ_v4j_w","wVj4m1ISWBY","po4xezkkc_U","BgPXRUkaUbk","bBvXtTyCO48","p3Zgr0tGCUs","uMvm1kwQwZw","TTAX828PXQM","OBiWCBZg9nA","hULyhnAt_H4"]},{"id":"PLC0c3CQFVGSmNpg5dGzFU9FyVsb-VmVYv","name":"一卦暴富","parts":["一卦","暴富"],"videos":["YWRrVLrONXM","7rK49D-VQPY","kQVjPqAsTcI","1QfJLtFQ5KU","PmwaVUcIVuU","Yxnx8wXDCOI","CIwOadl5ITk","lqInRVSVteQ","_YnLcycJ8KM","R8yCZeI6BSs","WDEEvYR1cew","QC1gFufqF20","VDVSwq_37HU","ORwSSBFiNMg","vwnPHl7wirg","2VYF0RMdn4Q"]},{"id":"PLC0c3CQFVGSlf34L4ZBnjjIecezH4EkrI","name":"火爆道姑","parts":["火爆","道姑"],"videos":["mOEZFWyXIM4","eUKL34TV1R4","uOd8mZF1QDc","hrJ9FjHfyRE","KaGiFWO6eIo","xQ926bckjVU","h6HC6XM7oEg","PCc3yHynd9c","DnsHIdznfX8","3UaAvQO827A","Pf3lyTfo7Ws","0CJuhcbsziY","yyQVXeGoyr4","M4OU4rbf5tc","LziUFlnXGhY","vaK1YkaA0BA","3Pbx9rtSFak"]},{"id":"PLC0c3CQFVGSlt8vJSEEgBzA5LmBMjSwOH","name":"玄學少女","parts":["玄學","少女"],"videos":["JQpWh5tnK3E","6rPjJfoR9vk","h_alWAZWI8s","_s-h_eRlXiU","rny9rmgz_H8","8EkoWpsKaeI","ecztY6-PcGA","xeH-nMSe_tQ","S-q8San-MHA","vQYnxhyny-U","lchkhP-Y3cs","35QXLHTRm-M","H2TzRsVUTAY","Ki7qnzKCImw"]},{"id":"PLC0c3CQFVGSmSpEgpBewjhaIz4DAByMku","name":"團寵神棍","parts":["團寵","神棍"],"videos":["x2vokSksMP8","-SYszh1wzME","r3UjbqqwBH8","ZvtUjoHJe7g","WsT9F44_gUc","x_ccNnC4Tso","DEAEmm_-i74","iFPDs21d9Vk","kBgYDUresTE","at7vX9FaeWo","WANs8x7ovr0","CQmnX1_WM_w","PyjfmzIh3-g","Lxv2RRZvv0Y","G6jqxvwPUhA","i9erGlmHtEg","RmVi2rMlcwY","IAlvITQzpK8","AEzV7PKX9rM","3kVomDpbaNA","dtO0ckcxARg","B4j8050PxEw","eBLSMTSxUs4"]},{"id":"PLC0c3CQFVGSlALx7WmnAU6cJQyrnQh-LM","name":"神算萌妻","parts":["神算","萌妻"],"videos":["OPJ-hZNKiA0","jif6BlEnodA","0Y-CnphUJtk","bc250MhOK18","kZg59y7b9Pg","Lrr-jFbxknw","1n61RKqzT38","HBeAwAZPbIY","-g2M8c_Aukg","gMw9FjuRK2c","9GdV1GZOFA0","4eCSaJICq2I","BF8Y9rk6dis","RBaSVqe0k-s","Ce1w9mmk-m0","7pajB0oDZ34","0J1pUeKjU_0","GzmXAAMNhTw","A9XCwtcpRl8","NYoxQ7tdqW0","ggAnBz2cAxI","tKqqnZyWF2M","MiECNYQMB-I","De0erErVzbY","0PVd7ptKHds","41-Y4Q15nww","2q1CkjCPwFo","aDSEEL_Cwx4","dx5f3dlBqjA","AuIpRrZSuJc","NUmPGSQ7tAk","GoDdXcyqCPo","xOXSIsFTA60"]},{"id":"PLC0c3CQFVGSkOVh8oRYhcJ0bnwTlIVnTj","name":"真千金是玄門祖宗","parts":["真千金","是玄門","祖宗"],"videos":["konc6gXk9bc","XErVkEG52GY","aXxpJAaHlzs","tcjziCXzTbM","IF-LxwxuLnI","87WZasjedjk","WfRDb22giBs","hQ4NpMRjWEA","WfgCz40c9ic"]},{"id":"PLC0c3CQFVGSn1ERQ4RmChBd_dygh1bnDA","name":"地攤玄學","parts":["地攤","玄學"],"videos":["7llRjSvj-NU","L3D4_uQ52HQ","484nfgN7yuI","hK0GinFrNjY","GwvjNb7FQ44","pnjLeeS9-Ac","_W-zrollB3M","EywiIooZjbw","3UQlsdKbTyA","8EUKJ1IHn70","v_vbKcFdYvk","eamHgUdFXaM","0FjvHNkefss","LXeK2KmKyEA","Om7vHW2NZXw","aJ8ZwgjbSec","8TdtQq20k64","CP-BSbnX5B8","zbOIxphMQfU","_vLhw3-c3lA","QAVoSg7q4X4","ejb4PKmThys","me7hY0qKKj4","E-oC19cEe2A","XFc-jh23Fxg","0RuEWkNuKP8","-oIU15PF0Yc","hUe7MziWKws","wyfou3WWcZw"]},{"id":"PLC0c3CQFVGSkBfgBGtpjrn10xfOvJa4DT","name":"玄學千金下山","parts":["玄學","千金","下山"],"videos":["rmVw57aud0g","aCHPw2gIwb4","WH8eDwWT0Go","b4hHFGCWzto","Wr-9DwtIb78","CyUpR8RVJa4"]},{"id":"PLC0c3CQFVGSnSVmjV2q_edq9aCPCzANQx","name":"玄學千金斷親緣","parts":["玄學","千金","斷親緣"],"videos":["VFWsdrLuni4","JkD9xrMWYwY","jz1GjXw_rqo","vJy4IRKXKXA","10ZoQfCEVh0","d1Emk6SRcjk","p6cyT-D_ylM"]},{"id":"PLC0c3CQFVGSlEam3FvXbQ7INSmX4rQWCp","name":"玄學小祖","parts":["玄學","小祖"],"videos":["Aw9dylcaU8c","marW7gtTLco","kOClmRHygzo","V2Os4t7nUiA","m7je_V9UpDI","-k4P06ia_SQ","G7ru2fCUW4Y","zyM9L7dYfQE","u_0yoKbK2hs","ZrgiJaxSq5c","uipEo0C79o8","jU4mNwEJDhQ"]},{"id":"PLC0c3CQFVGSnPNEbN_2KIvps36g5_Kmkf","name":"團寵玄學大佬","parts":["團寵","玄學","大佬"],"videos":["I02ISFr7xtU","rRfjmziTO50","dmg-TfV41IQ","NQxS8WVGFBM","8odi6CoVU2Y","BLi1OI5hU2E","VRB1PmFEi5o","z2OfguebAcU","lWNrKsPBTUs"]},{"id":"PLC0c3CQFVGSmGPf6-zq2mU6FawaGMw-4H","name":"替嫁玄學大佬","parts":["替嫁玄學","大佬"],"videos":["oa5oxlSRxmY","oSo0BhOPjw4","qYlii7Ar91c","m60vadVnI0U","kbu1IekBxhQ","MWthrmeE4WQ","U_iLfHrB4Es","pG1bKQYB1f0","CwTn6hLMOfI","RnoWNPVxFCg","PgEEcnWjSJQ"]},{"id":"PLC0c3CQFVGSn7Vnh3hsLFFpgL3d7WC12p","name":"龍骨村祭靈鎖","parts":["龍骨村","祭靈鎖"],"videos":["qyfiAQlsw5Q","HorqbHYt-ro"]},{"id":"PLC0c3CQFVGSnijsYCstByNLb2QQssP8jh","name":"千金一卦","parts":["千金","一卦"],"videos":["E3E3gqqUxVY","noUJkI4JMNU","mXyNR40tY1c","zfKpPm4B-h4","Ft3eoW8anU0","PcrMWru1wHE","weDm3P_TYu4","p9Tm5tOzZR4","gstSHqXpcuo","QpUKkSX76tc","cKUvjZBgMyA","eI0kWWTv5Yk","t5N6AJZqTNs","yi4xx-ZzBDE","IepkwgBx0GI","_4aRI50PrTI","WBLa-xnp1hw","HbwWAq_23AA","RFVwfN32lPg","AVgQ9pCoeJw","c6QK23xKvAk","RJFpc-f-hag","W5vz6_hcPS8","lcLBg8nvEfA","MoX9ZLWDz8c","CxD89AN8-es","TGBch7I5bqA","qOhBvc0KPoI","ihPlyvuH70w"]},{"id":"PLC0c3CQFVGSn-PbPLLh2rm-aI5VNMVZ7w","name":"真千金鬼見愁","parts":["真千金","鬼見愁"],"videos":["FEL5OWsl-Zo","iNlefhJSNDI","GiE6x2jLXvI","5SD2_DthdXU","rypgnjdlvbE","TifxBzvZzhc","Mq0CnCcOixk","vUAdD3GP1bo","1MmEVHMaJBw","1SxRlL5PwFw","sb4p2OieUkg","TTLUp8NQnb0","Dqd8iRhj514","d6JwL9U0Utc","Qm0lcLil5gs","wpqY6on0R5k","PjUCiQ3FRhk","YPRcKYLXviA","9dkVedy9-OE","_0wbWAgKGYk","d75IHeKMveQ","eAdpLRS57dc","49YxdKdRfDE","7Pm6_XxCYhs"]},{"id":"PLC0c3CQFVGSnMt54Tts6uE5MzxeWx12Mn","name":"地府公務員","parts":["地府","公務員"],"videos":["Mh_QmiWmBwA","NIIEJd1vlmE","EibYzWikerg","mTHbQ2lLUUs","CK1UYfRMpzo","YK-KQwzv1MI","q5z1jeGZCm8","5hC6SEdw6tc","lw6RG4o6kOw","AKrOrliDBy4","xFrtve8c72Y","GUy2n1faxZc","NcDaEhYa_AU","-lSFdRBNkEI","ehRgRRP_fI0","HpreC3l7fYI","MnLzL-7CzpI"]},{"id":"PLC0c3CQFVGSkmLcMxYTj9vR_Sa1p-V2Zl","name":"算心算命","parts":["算心","算命"],"videos":["B8l5kcXYRSk","zmu3qwqq5bI","SGRs8xJHma8","KfciiJBXAx8","6xQ4he6z6x4","lH3pjS60Z7Y","NQZmNjeT4Kk","bjgIB_BCspU","oEbkfxkMl8o","6wZ6GSBQca4","Jg6iqiCwsI0","QOOmM_WNgpA","GbZobaA2Roo","Alc7Dt9W7vI","ohoEdnhu1pU","QLx-GgRoa5c","mqH8GN6935c","r0-V20IpCmw","SNMA5-RKqkQ","B5rZ_A19uB0","ymE2kW7TrWw","wSz5UfImhSw","T6oSLSYXid4","sVc0UtCI-Ic","YiacX3Goxyc","5IchInRoWTs","8MbDYEVJI4I","C7VRGEnMB1c","bT9z2AtmLQw","qlORPmky4_E","DnGhZYoK938","dZy9KJhA08Y","PZ8aZ4Vrb4c"]},{"id":"PLC0c3CQFVGSkPzquNQBjtUmke6hPveYI9","name":"五行缺錢","parts":["五行","缺錢"],"videos":["xFch9ZFJsBg","r5W1-_aWVl4","bcQgtF1-NKM","Q7p7bqA15KA","9DtRf1_vizQ","7-9Pd1FP2GY","jN2g7QSZ11M","WP1PGfhxQbE","lBj8jkvNmyw","eOjse2e5Dwo","z4QR_R10CSw","Ic8RMOIg5VY","27OZD-SHxMM","xlYw_Ey920E","3Q2SnbjExNY","x2UCedfqfEE","MgSja0BPTgc","KJgrEvW2-eM","xwjKdKbvF-M","UJDUAao2MFg","6FafQ-0JPW0","3d1ePHEgRPM","CxcDicLYcS8","_0i2-G1v050","tAIfsUU27HI","j6jO8kKop18","B45eGukxSP4","DMSzEDZcG0E","Npul1O7e-Ys","23qcHN6j72s","suNq5HISYcw"]},{"id":"PLC0c3CQFVGSmIQlgTKBhm-GsDX0opmVvB","name":"卦行天下","parts":["卦行天下"],"videos":["D95kXSh-shU","HrE7o0gyGMU","mCv-PwOzgfQ","hVA4mDJJuWw","WnLFSEJrmPo","6O6sh1rEKhQ","4kyvvFNyPlA","CWhHJ2yUH8g","l2tdX_ehxl0","UePphMRvXWw","6LuRcqQJtG8","fLSD7l3EudQ","mGKnS2oBNUM","YdmD2EwhSxU","LndRbIL1-S8","2ex9I3FRvOY","hEmANwFQlU0","6SlXcLE-Uqw","gDilNjR78o0","wgzokS6ZKOs","_b1-XzrIcgA","3_fSmzJKZM8","nUVSGhoAq3w","dH8w-6vjHW4","qHU_OzjFFB0","dB2fZ1DFGeY","M4Oxr8eg7AI","05GoLoXbGLs","iuajYgC3x3w","bNkEjXmjnUA","bllPbpyFDX4","eCA-ia9hvDo","XMwZghzaEl4","Yf_FLNmn8Fc"]},{"id":"PLC0c3CQFVGSk1KbaBqdGqXGbnV7VaJ_22","name":"天師傳人","parts":["天師","傳人"],"videos":["DJfDa65LBuY","3ZMKvRIQtoo","XoRTJsUjybk","S2VoYwFyV-o","DpemE1wKfJY","R3hLn6ifYcM","HTz6u501hXw","SlQ1L7avbMs"]},{"id":"PLC0c3CQFVGSlpIs2i5DJ1BKS9PtNzzV1W","name":"出馬仙","parts":["出馬仙"],"videos":["7S6NOp6wYsQ","JYQz2hcrlok","ZDZVMkL9N2c","jJNvTNqdUu8","ChDIXLSMSTc","6bGm0YRB2rE"]},{"id":"PLC0c3CQFVGSlaffKHjjrIUxe91gf9bY4_","name":"算命律師","parts":["算命","律師"],"videos":["MWFcmsrsmck","htCjj4tVqGM","499ul9GTRrU","S__32wz7rEc","I7ByrOnVgeg","JtqjZeAkw9E","TJ58rIjAhqI","1Q9BmK4IUWc","Nc_WCHJ6ZTo","3NhxHc2kUjY","L-Y6iY-_a9U","D5wZj3TWni8","FkLKvUimLEg","s_HkcjtgqCs","ds-tl-NBdEk","orxlpIU7pyk","KSDSiyrA4p4","Ygt2Y1Fa6-w","OkTPf_wEx-E","nvUVdMAiB0Y","8AO5g7pJ8Ps","3dtqqjyfs0c","o5uIGHOkibI","hrJkMmQ1E_U","b5aB_rcpCFo","ZI7QLf03Kyw","ZMEPJ-d-xmY","sdQA0zlYAGU","XrT26LEZmSE","-XPlVbEPrQE","7PQuatbP810","P1emdrZIuVM","GAVEZxwytEw","ykpMIRG29R4","jJUf0lUp6PY"]},{"id":"PLC0c3CQFVGSl_JyNzcmxAdC9Uu85bimL-","name":"天師是女鬼","parts":["天師","是女鬼"],"videos":["7RZJ55Pcjjw","xJaEopL5k3A","on7Hu40QP_Q","HQB7vnWQqW0","3pFZN7yzKP8","w_52XGC7FZk","EbYNox_NdNc","pJjMe8k7De8"]},{"id":"PLC0c3CQFVGSnyYPMJYNIOrgr9lAlnsaMZ","name":"玄學千金","parts":["玄學","千金"],"videos":["jtFAPNggjME","gQkD7Ls71SE","q1w9l8S1ocM","V8bpL2WUS5U","yLyfgNJNbxI","zhEot76DcIU","Hj1tS2_ZYsA","3twTNKC9MxY","KH0-1DqHYGw","YCxCFpimL1U","a9O3ZragRLA","SKN7YVT-ra0","skgMP4B79Kg","wUJyR9DpN-k","pSnK4KMavwg","RBSMx86SdnM","v4FxGLlkfRw","w90kn4gD1Y8"]},{"id":"PLC0c3CQFVGSlJ8QQMTXuFMtR1Ovyet5eb","name":"總裁夫人擺攤算命","parts":["總裁","夫人","擺攤","算命"],"videos":["SRdglyR7EVI","2LzRV5mrG8w","PWzlg0UpgbU","Bq0dDbTJvMc","ecmyKashc8A","aWxp-PTRBVc","i5--uUEcOUc","QPn7NbVLZ44","nY1JyvcP7F0","cz6oAqPQ_LM","ckSnWfhBWkY","88NeUGLU0_U","10nSg603FV0","Gy-j4_GW7yk","U0jeNHMz-as","6ZAv3OL-cGY","-n4t5asfR-k","6PsbhvM2oso","1gHCbG53iiw","Z0Fg2IsddMI","h459qxCnyPA","GLPBiYJyhWs","UWA95lqfVm0","U-GkS0k6zdc","o7KxR0Uw4qA","DriPO54iqtc","ri-qYOqI4jo","hI60QRtyCoU","MqkeMPeforU","KPLXOOEO0bI"]},{"id":"PLC0c3CQFVGSmVKszuiwv_gA9uQdkk8odn","name":"千金小天師","parts":["千金","小天師"],"videos":["g1ahKr7Md08","qNZ2g9rNTvk","gYEygQvN5X4","L5MOTb4nen4","EAdnjSZMT1I","gIuEm9rvVNY","KYiPCPNNK4I","X_zqYT-pnkg","0PTpcmtBrhY","c4zQJEMpsGE","uf-BlPRsJrI","xU-koju6fLM","NVyDaHK-paw","EgX63pBzt1k","Rk5_vCeiixw","1TsGLqF9ClU","dzRqT7SDKjc","lyHhr-rHlQQ","v2e7ClBssZ0"]},{"id":"PLC0c3CQFVGSmpFaRSYzMUUKOo1FN-GWbC","name":"通靈師","parts":["通靈師"],"videos":["ajb5kbQk_LE","1nA6bbYQcDk","06GZdU6iZl4"]},{"id":"PLC0c3CQFVGSnrL_ebmlcV0lw529VSqcz8","name":"小道士被迫下山","parts":["小道士","被迫","下山"],"videos":["v0904Qnz-BE","m2GzonjbQO4","dkSLGwCDwLc","Ps_f5ep2z-I","yXbQMI-Z9Cw","kZYCcg6u7Tc","QzqnL4aMtSI","p9vwVQj2BFo","uOuurT3aYgs","VcWWcVVfV9s","yZk5InAsSo0","y0UwUULz-gE","Vp9yCbXdzoo","Lv1JBA0b9dA"]},{"id":"PLC0c3CQFVGSm_V3lx6C_F09YHZBSaVPLO","name":"人棺","parts":["人棺"],"videos":["_IgN0fOvoo0","iu0jjNZj1os","jnnJYeJhlyI","TX8lZdXKBi0"]},{"id":"PLC0c3CQFVGSnSnWCU4ygK74HH-R2FO3x7","name":"胤都異妖錄","parts":["胤都異妖錄"],"videos":["8xjW1bgHOgI"]},{"id":"PLC0c3CQFVGSnNRmA92FkSr66jSJyG63gU","name":"紙紮鋪","parts":["紙紮鋪"],"videos":["XhtFx57fRAM","7vwQ0ZOKJ24","kFkhB8iidqQ"]},{"id":"PLC0c3CQFVGSlOWR3tVtXh7KqdfwvG4OAW","name":"地師少女","parts":["地師","少女"],"videos":["olFbEe8P5ZA","2aSZpkvUTlU","SpqhTtu5qc4","z35cvVU-r1I","Y7LFpmGWyfU","9rAYoByWNEw","7rn3t4GyoyQ"]},{"id":"PLC0c3CQFVGSmAJI2L2URMUeXgYMEKebx2","name":"打魂鞭系列","parts":["打魂鞭","系列"],"videos":["v0Yice_wKpQ","iLOyHcyAa5o","1TZMC-X-sfY"]},{"id":"PLC0c3CQFVGSmdLS1nZFTj8t-4jadoFJVR","name":"靈珠傳系列","parts":["靈珠傳","系列"],"videos":["SDeOk1-ROCQ","uKAq8PDj4Nw","oMGgT1KCkXw","QDhatnf7kIA","tYAGc667YOY","KYAwP1yzMJ0","-NpAj66bxpE","5U2O5m9lkm4","EEk9219WDMU","SbJJyLFotG0","y78X5wbxNS4","wbzOcfACxAc","-kqWI3_E7yY","F04Z2driZfY","vMP6OvP0UxY"]}];
   const STORAGE_KEY = "yunjuan-stories-v1";
 
   let ytApiReady = false;
@@ -962,6 +972,9 @@
   }
 
   const HOME_PER_PAGE = 6;
+  let homeSel = 0;
+  let homeSelWant = null;
+  let lastLeftSeriesId = null;
   let homePage = 0;
   try { homePage = parseInt(sessionStorage.getItem("home-page") || "0", 10) || 0; } catch (e) {}
 
@@ -1088,14 +1101,8 @@
     next.id = "btn-page-next";
     next.textContent = "下一頁";
     next.disabled = homePage >= pages - 1;
-    function goPage(d) {
-      homePage = Math.max(0, Math.min(homePage + d, pages - 1));
-      try { sessionStorage.setItem("home-page", String(homePage)); } catch (e) {}
-      renderHome();
-      try { window.scrollTo(0, 0); } catch (e) {}
-    }
-    prev.addEventListener("click", function () { goPage(-1); });
-    next.addEventListener("click", function () { goPage(1); });
+    prev.addEventListener("click", function () { changeHomePage(-1); });
+    next.addEventListener("click", function () { changeHomePage(1); });
     pager.appendChild(prev);
     pager.appendChild(txt);
     pager.appendChild(next);
@@ -1105,6 +1112,79 @@
     wrap.appendChild(renderAuthBar());
     root.appendChild(wrap);
     fitCardTitles();
+    // 預設選一張卡：剛剛聽的故事在這一頁就選它，不然選第一張
+    const pageCards = homeCards();
+    let sel = homeSel;
+    if (homeSelWant === "last") sel = pageCards.length - 1;
+    else if (homeSelWant === "first") sel = 0;
+    else if (lastLeftSeriesId) {
+      const k = pageCards.findIndex(function (c) { return c.getAttribute("data-id") === lastLeftSeriesId; });
+      sel = k >= 0 ? k : 0;
+      lastLeftSeriesId = null;
+    }
+    homeSelWant = null;
+    selectHomeCard(sel);
+  }
+
+  function homeCards() {
+    return Array.prototype.slice.call(document.querySelectorAll("#grid .card2.series-card"));
+  }
+
+  function selectHomeCard(i) {
+    const cards = homeCards();
+    if (!cards.length) return;
+    i = Math.max(0, Math.min(i, cards.length - 1));
+    cards.forEach(function (c, k) { c.classList.toggle("kbd-sel", k === i); });
+    homeSel = i;
+    try { cards[i].focus({ preventScroll: true }); } catch (e) {}
+  }
+
+  function homePageCount() {
+    return Math.max(1, Math.ceil(DATA.length / HOME_PER_PAGE));
+  }
+
+  function changeHomePage(d, want) {
+    const pages = homePageCount();
+    const target = Math.max(0, Math.min(homePage + d, pages - 1));
+    if (target === homePage) return false;
+    homePage = target;
+    try { sessionStorage.setItem("home-page", String(homePage)); } catch (e) {}
+    homeSelWant = want || "first";
+    renderHome();
+    try { window.scrollTo(0, 0); } catch (e) {}
+    return true;
+  }
+
+  // 首頁鍵盤：方向鍵只在故事方塊之間移動；左右到頭會翻頁；Enter／空白鍵 打開
+  function homeKey(e) {
+    const cards = homeCards();
+    if (!cards.length) return;
+    const ae = document.activeElement;
+    let i = cards.indexOf(ae);
+    if (i < 0) i = Math.max(0, Math.min(homeSel, cards.length - 1));
+    const COLS = 3;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      if (i < cards.length - 1) selectHomeCard(i + 1);
+      else if (!changeHomePage(1, "first")) selectHomeCard(i);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (i > 0) selectHomeCard(i - 1);
+      else if (!changeHomePage(-1, "last")) selectHomeCard(i);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      selectHomeCard(i + COLS < cards.length ? i + COLS : i);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      selectHomeCard(i - COLS >= 0 ? i - COLS : i);
+    } else if (e.key === "Enter" || e.code === "NumpadEnter" || e.key === " " || e.code === "Space") {
+      // 焦點在別的按鈕（繼續聽、觀看記錄、登入、翻頁）時交給瀏覽器原本的行為
+      const onOtherControl = ae && ae !== document.body && cards.indexOf(ae) < 0 &&
+        (ae.tagName === "BUTTON" || ae.tagName === "A");
+      if (onOtherControl) return;
+      e.preventDefault();
+      cards[i].click();
+    }
   }
 
   // 名稱太長時逐步縮小字，保證一行放得下
@@ -1616,7 +1696,14 @@
         ];
         cells.forEach(function (c, i) {
           const td = document.createElement("td");
-          td.textContent = c;
+          if (i === 0 && Array.isArray(s.parts) && s.parts.length > 1) {
+            s.parts.forEach(function (part, k) {
+              if (k > 0) td.appendChild(document.createElement("wbr"));
+              td.appendChild(document.createTextNode(part));
+            });
+          } else {
+            td.textContent = c;
+          }
           if (i === 0) td.className = "title";
           if (i === 2) td.className = "pos";
           if (i === 3) td.className = "when";
@@ -1859,6 +1946,7 @@
 
   function teardownPlayer() {
     undoNext = null;
+    if (playCtx && playCtx.series) lastLeftSeriesId = playCtx.series.id;
     clearInterval(saveTimer);
     saveTimer = null;
     clearInterval(histTimer);
@@ -1916,6 +2004,19 @@
         }
         return;
       }
+      if (e.key === "Escape" || e.key === "Esc") {
+        e.preventDefault();
+        if ($("app").querySelector(".finished")) {
+          clearTimeout(finishedTimer);
+          flushCloudWrite();
+          goHome();
+          return;
+        }
+        saveCurrentSeconds();
+        flushCloudWrite();
+        goHome();
+        return;
+      }
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         if ($("app").querySelector(".finished")) {
@@ -1948,17 +2049,7 @@
       }
       return;
     }
-    const cards = Array.prototype.slice.call(document.querySelectorAll(".btn-continue, .series-card"));
-    if (!cards.length) return;
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      e.preventDefault();
-      const i = cards.indexOf(document.activeElement);
-      const start = i < 0 ? (e.key === "ArrowDown" ? -1 : 0) : i;
-      const next = e.key === "ArrowDown"
-        ? Math.min(start + 1, cards.length - 1)
-        : Math.max(start - 1, 0);
-      cards[next].focus();
-    }
+    if (r.page === "home" && $("grid")) homeKey(e);
   });
 
   function onLeavePage() {
