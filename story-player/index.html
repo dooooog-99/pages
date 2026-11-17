@@ -429,6 +429,8 @@
   let flashTimer = null;
   let statusTimer = null;
   let progTimer = null;
+  let pendingRewind = null;
+  const RESUME_REWIND = 30;
   let audioCtx = null;
   const SEEK_STEP = 30;
   const HISTORY_MAX = 2000;
@@ -874,7 +876,7 @@
         btn.appendChild(big);
         btn.appendChild(sub);
         btn.addEventListener("click", function () {
-          startSeries(series.id);
+          startSeries(series.id, true);
         });
         contWrap.appendChild(btn);
       });
@@ -921,7 +923,8 @@
     root.appendChild(wrap);
   }
 
-  function startSeries(id) {
+  // rewind=true：首頁「繼續聽」和觀看記錄「接著聽」用，從上次位置往前 30 秒開始
+  function startSeries(id, rewind) {
     const s = findSeries(id);
     if (!s) return;
     const p = getProgress(id);
@@ -929,6 +932,7 @@
     if (p && !p.finished) {
       index = Math.max(0, Math.min(p.index || 0, s.videos.length - 1));
     }
+    pendingRewind = (rewind && p && !p.finished) ? { id: id, index: index } : null;
     goPlay(id, index);
   }
 
@@ -970,7 +974,11 @@
 
     const existing = getProgress(id);
     const resumeSame = existing && !existing.finished && existing.index === index;
-    const startSeconds = resumeSame ? Math.max(0, Math.floor(existing.seconds || 0)) : 0;
+    let startSeconds = resumeSame ? Math.max(0, Math.floor(existing.seconds || 0)) : 0;
+    if (pendingRewind && pendingRewind.id === id && pendingRewind.index === index) {
+      startSeconds = Math.max(0, startSeconds - RESUME_REWIND);
+    }
+    pendingRewind = null;
     setProgress(id, { index: index, finished: false, seconds: startSeconds });
 
     const root = $("app");
@@ -1410,7 +1418,7 @@
         b.textContent = pr.finished ? "再聽一次" : "接著聽";
         tdBtn.appendChild(b);
         tr.appendChild(tdBtn);
-        tr.addEventListener("click", function () { startSeries(s.id); });
+        tr.addEventListener("click", function () { startSeries(s.id, true); });
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
