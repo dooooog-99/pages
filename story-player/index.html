@@ -344,6 +344,12 @@
       padding: 0.3em 0.7em;
       white-space: nowrap;
     }
+    .play-status.announce span {
+      white-space: normal;
+      max-width: 92%;
+      text-align: center;
+      font-size: clamp(32px, 4.5vw, 64px);
+    }
     /* 進度條：只看不能點 */
     .progress-row {
       flex: 0 0 auto;
@@ -543,6 +549,9 @@
   let statusTimer = null;
   let progTimer = null;
   let pendingRewind = null;
+  let pendingFresh = null;
+  let announceUntil = 0;
+  let announceTimer = null;
   const RESUME_REWIND = 30;
   let audioCtx = null;
   const SEEK_STEP = 30;
@@ -1166,6 +1175,12 @@
       startSeconds = Math.max(0, startSeconds - RESUME_REWIND);
     }
     pendingRewind = null;
+    let announceText = "";
+    if (pendingFresh && pendingFresh.id === id) {
+      startSeconds = 0;
+      announceText = pendingFresh.text;
+    }
+    pendingFresh = null;
     setProgress(id, { index: index, finished: false, seconds: startSeconds });
 
     const root = $("app");
@@ -1309,6 +1324,7 @@
 
     createOrLoadPlayer(series.videos[index], startSeconds);
     startProgressLoop();
+    if (announceText) showAnnounce(announceText);
   }
 
   function updatePlayerChrome() {
@@ -1615,7 +1631,45 @@
   }
 
   // 影片中間的大字狀態：播放中顯示 2.5 秒後淡出；暫停時一直顯示
+  // 大字公告（例如數字鍵盤 Enter 換故事），約 2.5 秒；期間不被播放／暫停大字蓋掉
+  function showAnnounce(text) {
+    const el = $("play-status");
+    if (!el) return;
+    const span = el.querySelector("span");
+    if (span) span.textContent = text;
+    el.classList.add("announce");
+    el.setAttribute("data-state", "announce");
+    el.classList.add("on");
+    clearTimeout(statusTimer);
+    statusTimer = null;
+    clearTimeout(announceTimer);
+    announceUntil = Date.now() + 2500;
+    announceTimer = setTimeout(function () {
+      announceUntil = 0;
+      el.classList.remove("on");
+      el.classList.remove("announce");
+    }, 2500);
+  }
+
+  // 數字鍵盤 Enter：隨機換一個別的故事，從第 1 集 0 秒開始
+  function switchToRandomSeries() {
+    if (!playCtx || !$("player-page")) return;
+    const curId = playCtx.series.id;
+    const others = DATA.filter(function (x) { return x.id !== curId; });
+    if (!others.length) return;
+    const pick = others[Math.floor(Math.random() * others.length)];
+    saveCurrentSeconds();
+    appendHistory();
+    flushCloudWrite();
+    teardownPlayer();
+    pendingRewind = null;
+    pendingFresh = { id: pick.id, text: "換一個故事：" + pick.name };
+    goPlay(pick.id, 0);
+  }
+  window.__switchToRandomSeries = switchToRandomSeries;
+
   function showStatus(playing) {
+    if (Date.now() < announceUntil) return;
     const el = $("play-status");
     if (!el) return;
     const span = el.querySelector("span");
@@ -1767,6 +1821,9 @@
     statusTimer = null;
     clearInterval(progTimer);
     progTimer = null;
+    clearTimeout(announceTimer);
+    announceTimer = null;
+    announceUntil = 0;
     const flash = $("seek-flash");
     if (flash) flash.classList.remove("on");
     clearTimeout(finishedTimer);
@@ -1803,6 +1860,13 @@
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     const r = parseRoute();
     if (r.page === "play") {
+      if (e.code === "NumpadEnter") {
+        if ($("player-page")) {
+          e.preventDefault();
+          switchToRandomSeries();
+        }
+        return;
+      }
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         if ($("app").querySelector(".finished")) {
