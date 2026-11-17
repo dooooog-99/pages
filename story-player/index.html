@@ -231,6 +231,85 @@
       padding: 0.3em 0.7em;
       white-space: nowrap;
     }
+    /* 進度條：只看不能點 */
+    .progress-row {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .progress-bar {
+      flex: 1 1 auto;
+      height: 22px;
+      background: #3a3a3a;
+      border: 3px solid var(--white);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--yellow);
+    }
+    .progress-text {
+      flex: 0 0 auto;
+      font-size: clamp(28px, 3.4vw, 40px);
+      line-height: 1.1;
+      color: var(--white);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .home-tools { margin-top: 56px; }
+    .home-tools + .auth-bar { margin-top: 20px; }
+    .btn-history {
+      font-size: 28px;
+      padding: 10px 22px;
+      border-width: 4px;
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--white);
+    }
+    /* 觀看記錄頁：給家人看的，一般網頁比例 */
+    .hist-page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px 20px 40px;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #eee;
+    }
+    .hist-page button {
+      font-size: 14px;
+      font-weight: 400;
+      border: 1px solid #888;
+      border-radius: 6px;
+      padding: 4px 12px;
+      background: #222;
+      color: #fff;
+    }
+    .hist-page button:hover { background: #333; }
+    .hist-page button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+    .hist-top { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+    .hist-home { color: var(--yellow); font-size: 16px; text-decoration: underline; }
+    .hist-page h2 { font-size: 22px; font-weight: 700; color: #fff; margin: 4px 0 4px; }
+    .hist-note { font-size: 14px; color: #bbb; margin-bottom: 12px; }
+    .hist-empty { font-size: 16px; color: #ddd; padding: 24px 0; }
+    .hist-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .hist-table th, .hist-table td {
+      text-align: left;
+      padding: 7px 10px;
+      border-bottom: 1px solid #333;
+      white-space: nowrap;
+    }
+    .hist-table th { color: #aaa; font-weight: 700; font-size: 13px; background: #111; }
+    .hist-table tbody tr { cursor: pointer; }
+    .hist-table tbody tr:hover { background: #1c1c1c; }
+    .hist-table td.title { white-space: normal; color: #fff; font-weight: 700; }
+    .hist-done { color: #8fd18f; }
+    .hist-half { color: var(--yellow); }
     .controls {
       flex: 0 0 auto;
       display: flex;
@@ -349,6 +428,7 @@
   let lastYtState = null;
   let flashTimer = null;
   let statusTimer = null;
+  let progTimer = null;
   let audioCtx = null;
   const SEEK_STEP = 30;
   const HISTORY_MAX = 2000;
@@ -588,7 +668,9 @@
 
   function refreshHomeIfVisible() {
     try {
-      if (parseRoute().page === "home" && $("home")) renderHome();
+      const pg = parseRoute().page;
+      if (pg === "home" && $("home")) renderHome();
+      else if (pg === "history" && $("hist-page")) renderHistory();
     } catch (e) { console.log(e); }
   }
 
@@ -710,6 +792,7 @@
     const h = (location.hash || "").replace(/^#/, "");
     const m = h.match(/^\/?play\/([^/]+)\/(\d+)\/?$/);
     if (m) return { page: "play", id: decodeURIComponent(m[1]), index: parseInt(m[2], 10) };
+    if (/^\/?history\/?$/.test(h)) return { page: "history" };
     return { page: "home" };
   }
 
@@ -823,6 +906,16 @@
       list.appendChild(card);
     });
     wrap.appendChild(list);
+    const tools = document.createElement("div");
+    tools.className = "home-tools";
+    const btnHist = document.createElement("button");
+    btnHist.type = "button";
+    btnHist.id = "btn-history";
+    btnHist.className = "btn-history";
+    btnHist.textContent = "觀看記錄";
+    btnHist.addEventListener("click", function () { location.hash = "#/history"; });
+    tools.appendChild(btnHist);
+    wrap.appendChild(tools);
     wrap.appendChild(renderAuthBar());
 
     root.appendChild(wrap);
@@ -998,10 +1091,29 @@
 
     page.appendChild(head);
     page.appendChild(area);
+    const prow = document.createElement("div");
+    prow.className = "progress-row";
+    prow.id = "progress-row";
+    prow.setAttribute("aria-hidden", "true");
+    const pbar = document.createElement("div");
+    pbar.className = "progress-bar";
+    pbar.id = "progress-bar";
+    const pfill = document.createElement("div");
+    pfill.className = "progress-fill";
+    pfill.id = "progress-fill";
+    pbar.appendChild(pfill);
+    const ptext = document.createElement("div");
+    ptext.className = "progress-text";
+    ptext.id = "progress-text";
+    ptext.textContent = "0:00 / 0:00";
+    prow.appendChild(pbar);
+    prow.appendChild(ptext);
+    page.appendChild(prow);
     page.appendChild(controls);
     root.appendChild(page);
 
     createOrLoadPlayer(series.videos[index], startSeconds);
+    startProgressLoop();
   }
 
   function updatePlayerChrome() {
@@ -1167,6 +1279,146 @@
     }, 1000);
   }
 
+  function fmtClock(sec, withHours) {
+    sec = Math.max(0, Math.floor(Number(sec) || 0));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const ss = sec % 60;
+    if (withHours) return h + ":" + pad2(m) + ":" + pad2(ss);
+    return (h * 60 + m) + ":" + pad2(ss);
+  }
+
+  // 播放進度（只顯示，不能點）
+  function updateProgress() {
+    const text = $("progress-text");
+    const fill = $("progress-fill");
+    if (!text || !fill) return;
+    let cur = 0;
+    let dur = 0;
+    try {
+      if (ytPlayer) {
+        const t = ytPlayer.getCurrentTime();
+        if (typeof t === "number" && !isNaN(t)) cur = t;
+        const d = ytPlayer.getDuration();
+        if (typeof d === "number" && !isNaN(d) && d > 0) dur = d;
+      }
+    } catch (e) {}
+    if (dur > 0 && cur > dur) cur = dur;
+    const longVideo = dur >= 3600;
+    text.textContent = fmtClock(cur, longVideo) + " / " + fmtClock(dur, longVideo);
+    fill.style.width = (dur > 0 ? Math.min(100, (cur / dur) * 100) : 0) + "%";
+  }
+
+  function startProgressLoop() {
+    clearInterval(progTimer);
+    updateProgress();
+    progTimer = setInterval(updateProgress, 1000);
+  }
+
+  function fmtTaipei(ts) {
+    ts = Number(ts) || 0;
+    if (!ts) return "—";
+    try {
+      const parts = {};
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false
+      }).formatToParts(new Date(ts)).forEach(function (x) { parts[x.type] = x.value; });
+      return parts.year + "/" + parts.month + "/" + parts.day + " " + (parts.hour === "24" ? "00" : parts.hour) + ":" + parts.minute;
+    } catch (e) {
+      const d = new Date(ts);
+      return d.getFullYear() + "/" + pad2(d.getMonth() + 1) + "/" + pad2(d.getDate()) + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+    }
+  }
+
+  // 觀看記錄頁（給家人看，一般比例）
+  function renderHistory() {
+    teardownPlayer();
+    const root = $("app");
+    root.innerHTML = "";
+    const pageEl = document.createElement("div");
+    pageEl.className = "hist-page";
+    pageEl.id = "hist-page";
+
+    const top = document.createElement("div");
+    top.className = "hist-top";
+    const home = document.createElement("a");
+    home.href = "#/";
+    home.id = "hist-home";
+    home.className = "hist-home";
+    home.textContent = "← 回首頁";
+    top.appendChild(home);
+    pageEl.appendChild(top);
+
+    const h2 = document.createElement("h2");
+    h2.textContent = "觀看記錄";
+    pageEl.appendChild(h2);
+    const note = document.createElement("div");
+    note.className = "hist-note";
+    note.id = "hist-note";
+    note.textContent = cloudUser
+      ? "已登入：" + (cloudUser.displayName || cloudUser.email || "Google 帳號") + "，記錄已和雲端同步"
+      : "沒登入，只顯示這台電腦的記錄";
+    pageEl.appendChild(note);
+
+    const rows = recentSeriesWithProgress(loadStore(), 1000);
+    if (!rows.length) {
+      const empty = document.createElement("div");
+      empty.className = "hist-empty";
+      empty.id = "hist-empty";
+      empty.textContent = "還沒有觀看記錄";
+      pageEl.appendChild(empty);
+    } else {
+      const table = document.createElement("table");
+      table.className = "hist-table";
+      table.id = "hist-table";
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+      ["故事", "聽到第幾集", "這集聽到", "最後收聽（台北時間）", "狀態", ""].forEach(function (t) {
+        const th = document.createElement("th");
+        th.textContent = t;
+        hr.appendChild(th);
+      });
+      thead.appendChild(hr);
+      table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+      rows.forEach(function (item) {
+        const s = item.series;
+        const pr = item.progress || {};
+        const total = s.videos.length;
+        const n = Math.min((pr.index || 0) + 1, total);
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-id", s.id);
+        const cells = [
+          s.name,
+          "第 " + n + " 集 / 共 " + total + " 集",
+          pr.finished ? "—" : fmtClock(pr.seconds || 0, (pr.seconds || 0) >= 3600),
+          fmtTaipei(pr.updatedAt),
+          pr.finished ? "已聽完" : "聽到一半"
+        ];
+        cells.forEach(function (c, i) {
+          const td = document.createElement("td");
+          td.textContent = c;
+          if (i === 0) td.className = "title";
+          if (i === 4) td.className = pr.finished ? "hist-done" : "hist-half";
+          tr.appendChild(td);
+        });
+        const tdBtn = document.createElement("td");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "hist-resume";
+        b.textContent = pr.finished ? "再聽一次" : "接著聽";
+        tdBtn.appendChild(b);
+        tr.appendChild(tdBtn);
+        tr.addEventListener("click", function () { startSeries(s.id); });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      pageEl.appendChild(table);
+    }
+    root.appendChild(pageEl);
+  }
+
   // 影片中間的大字狀態：播放中顯示 2.5 秒後淡出；暫停時一直顯示
   function showStatus(playing) {
     const el = $("play-status");
@@ -1318,6 +1570,8 @@
     flashTimer = null;
     clearTimeout(statusTimer);
     statusTimer = null;
+    clearInterval(progTimer);
+    progTimer = null;
     const flash = $("seek-flash");
     if (flash) flash.classList.remove("on");
     clearTimeout(finishedTimer);
@@ -1343,7 +1597,8 @@
         saveCurrentSeconds();
         flushCloudWrite();
       }
-      renderHome();
+      if (r.page === "history") renderHistory();
+      else renderHome();
     }
   }
 
