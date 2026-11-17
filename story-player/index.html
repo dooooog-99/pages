@@ -64,7 +64,12 @@
       color: var(--white);
       margin-bottom: 32px;
     }
-    #continue-wrap { margin-bottom: 40px; }
+    #continue-wrap {
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
     #continue-wrap[hidden] { display: none; }
     .btn-continue {
       width: 100%;
@@ -576,10 +581,27 @@
     return "上次聽到第 " + n + " 集";
   }
 
+  function recentSeriesWithProgress(store, limit) {
+    const items = [];
+    const map = (store && store.series) || {};
+    Object.keys(map).forEach(function (id) {
+      const series = findSeries(id);
+      if (!series) return;
+      const p = map[id];
+      if (!p) return;
+      items.push({
+        series: series,
+        progress: p,
+        updatedAt: Number(p.updatedAt) || 0
+      });
+    });
+    items.sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    return items.slice(0, limit || 3);
+  }
+
   function renderHome() {
     teardownPlayer();
     const store = loadStore();
-    const last = store.lastId ? findSeries(store.lastId) : null;
 
     const root = $("app");
     root.innerHTML = "";
@@ -603,34 +625,39 @@
       wrap.appendChild(msg);
     }
 
+    const recent = recentSeriesWithProgress(store, 3);
     const contWrap = document.createElement("div");
     contWrap.id = "continue-wrap";
-    if (!last) {
+    if (!recent.length) {
       contWrap.hidden = true;
     } else {
-      const lastP = getProgress(last.id);
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn-continue";
-      btn.id = "btn-continue";
-      const big = document.createElement("span");
-      big.className = "big";
-      const sub = document.createElement("span");
-      sub.className = "sub";
-      if (lastP && lastP.finished) {
-        big.textContent = "再聽一次上次的故事";
-        sub.textContent = last.name + "　已經聽完了";
-      } else {
-        big.textContent = "繼續聽上次的故事";
-        const n = lastP ? Math.min((lastP.index || 0) + 1, last.videos.length) : 1;
-        sub.textContent = last.name + "　第 " + n + " 集";
-      }
-      btn.appendChild(big);
-      btn.appendChild(sub);
-      btn.addEventListener("click", function () {
-        startSeries(last.id);
+      recent.forEach(function (item, i) {
+        const series = item.series;
+        const lastP = item.progress;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-continue";
+        btn.id = i === 0 ? "btn-continue" : ("btn-continue-" + i);
+        btn.setAttribute("data-id", series.id);
+        const big = document.createElement("span");
+        big.className = "big";
+        const sub = document.createElement("span");
+        sub.className = "sub";
+        if (lastP && lastP.finished) {
+          big.textContent = "再聽一次 " + series.name;
+          sub.textContent = "已經聽完了";
+        } else {
+          const n = lastP ? Math.min((lastP.index || 0) + 1, series.videos.length) : 1;
+          big.textContent = "繼續聽 " + series.name;
+          sub.textContent = "第 " + n + " 集";
+        }
+        btn.appendChild(big);
+        btn.appendChild(sub);
+        btn.addEventListener("click", function () {
+          startSeries(series.id);
+        });
+        contWrap.appendChild(btn);
       });
-      contWrap.appendChild(btn);
     }
     wrap.appendChild(contWrap);
 
