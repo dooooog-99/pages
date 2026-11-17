@@ -234,43 +234,36 @@
       color: #000;
       padding: 24px 40px;
     }
-    .backup-bar {
-      margin-top: 64px;
-      padding-top: 40px;
-      border-top: 6px solid #333;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-    .backup-bar button {
+    .auth-bar { margin-bottom: 32px; }
+    .btn-login {
       width: 100%;
-      min-height: 120px;
-      font-size: 44px;
+      min-height: 130px;
+      font-size: 48px;
       padding: 24px 28px;
-    }
-    .btn-backup-now {
       background: var(--yellow);
       color: #000;
       border-color: var(--yellow);
+      text-align: center;
     }
-    .btn-restore {
+    .auth-signed {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px 24px;
+    }
+    .auth-name {
+      flex: 1 1 auto;
+      font-size: 40px;
+      color: var(--yellow);
+      line-height: 1.3;
+    }
+    .btn-logout {
+      font-size: 32px;
+      min-height: 64px;
+      padding: 12px 28px;
       background: var(--card);
       color: var(--white);
     }
-    .restore-msg {
-      font-size: 52px;
-      color: var(--yellow);
-      text-align: center;
-      padding: 28px 24px;
-      border: 6px solid var(--yellow);
-      border-radius: var(--radius);
-      margin-bottom: 32px;
-    }
-    .restore-msg.error {
-      color: var(--white);
-      border-color: #aaa;
-    }
-    #restore-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
     @media (max-width: 800px) {
       h1 { font-size: 52px; }
       .btn-continue .big { font-size: 48px; }
@@ -281,8 +274,8 @@
       .btn-home { flex-basis: 100%; min-width: 100%; }
       .seek-flash span { font-size: 64px; padding: 28px 36px; }
       .yt-wrap { max-height: none; min-height: 40vh; }
-      .backup-bar button { min-height: 110px; font-size: 40px; }
-      .restore-msg { font-size: 44px; }
+      .btn-login { min-height: 110px; font-size: 44px; }
+      .auth-name { font-size: 36px; }
     }
   </style>
 </head>
@@ -302,9 +295,14 @@
   let histTimer = null;
   let lastYtState = null;
   let flashTimer = null;
-  let homeNotice = null;
   const HISTORY_MAX = 2000;
-  const BACKUP_MARK = "===還原資料請勿修改===";
+  const CLOUD_WRITE_MS = 10000;
+
+  let cloudApi = null;
+  let cloudUser = null;
+  let cloudWriteTimer = null;
+  let cloudWriteInFlight = null;
+  let cloudWriteQueued = false;
 
   window.onYouTubeIframeAPIReady = function () {
     ytApiReady = true;
@@ -327,6 +325,7 @@
 
   function saveStore(s) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    scheduleCloudWrite();
   }
 
   function getProgress(id) {
@@ -358,19 +357,6 @@
       time: pad2(d.getHours()) + ":" + pad2(d.getMinutes()),
       ts: d.getTime()
     };
-  }
-
-  function formatMmSs(sec) {
-    sec = Math.max(0, Math.floor(Number(sec) || 0));
-    return Math.floor(sec / 60) + "分" + pad2(sec % 60) + "秒";
-  }
-
-  function formatLocalDateTime(ts) {
-    if (ts == null || ts === "") return "";
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return "";
-    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate())
-      + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
   }
 
   function getCurrentSeconds() {
@@ -416,119 +402,52 @@
     return rec;
   }
 
-  function seriesDisplayName(id, fallback) {
-    const s = findSeries(id);
-    return (s && s.name) || fallback || id;
+  function historyKey(h) {
+    if (!h) return "";
+    return [h.date, h.time, h.seriesId, h.episode, h.seconds, h.videoId].join("|");
   }
 
-  function buildBackupText() {
-    const store = loadStore();
-    const lines = [];
-    lines.push("目前進度");
-    lines.push("");
-    const ids = Object.keys(store.series || {});
-    ids.sort(function (a, b) {
-      return (store.series[b].updatedAt || 0) - (store.series[a].updatedAt || 0);
+  function dedupeHistory(list) {
+    const seen = {};
+    const out = [];
+    (list || []).forEach(function (h) {
+      const k = historyKey(h);
+      if (!k || seen[k]) return;
+      seen[k] = true;
+      out.push(h);
     });
-    if (!ids.length) {
-      lines.push("還沒有收聽進度");
-    } else {
-      ids.forEach(function (id) {
-        const p = store.series[id] || {};
-        const name = seriesDisplayName(id);
-        const ep = (p.index || 0) + 1;
-        const when = formatLocalDateTime(p.updatedAt);
-        let line = name + " 第" + ep + "集 聽到 " + formatMmSs(p.seconds);
-        if (when) line += "（最後聽的時間 " + when + "）";
-        lines.push(line);
-      });
-    }
-    lines.push("");
-    lines.push("收聽紀錄");
-    lines.push("");
-    const hist = store.history || [];
-    if (!hist.length) {
-      lines.push("還沒有收聽紀錄");
-    } else {
-      hist.forEach(function (h) {
-        lines.push(
-          (h.date || "") + " " + (h.time || "") + " " + (h.seriesName || "")
-          + " 第" + (h.episode || 1) + "集 " + formatMmSs(h.seconds)
-        );
-      });
-    }
-    lines.push("");
-    lines.push(BACKUP_MARK);
-    lines.push(JSON.stringify({
-      version: 1,
-      lastId: store.lastId || null,
-      series: store.series || {},
-      history: hist
-    }));
-    return lines.join("\n");
+    return out;
   }
 
-  function backupFileName(dateStr) {
-    return "聽故事紀錄_" + (dateStr || localNow().date) + ".txt";
-  }
-
-  function downloadBackup() {
-    const text = buildBackupText();
-    const filename = backupFileName();
-    const blob = new Blob(["\uFEFF" + text], { type: "text/plain;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () {
-      URL.revokeObjectURL(a.href);
-      if (a.parentNode) a.parentNode.removeChild(a);
-    }, 1500);
-    return filename;
-  }
-
-  function hasAnythingToBackup(store) {
-    store = store || loadStore();
-    if (store.lastId) return true;
-    if (store.history && store.history.length) return true;
-    if (store.series && Object.keys(store.series).length) return true;
-    return false;
-  }
-
-  function maybeAutoBackup() {
-    const store = loadStore();
-    const today = localNow().date;
-    if (store.lastBackupDate === today) return false;
-    if (!hasAnythingToBackup(store)) return false;
-    downloadBackup();
-    const s = loadStore();
-    s.lastBackupDate = today;
-    saveStore(s);
-    return true;
-  }
-
-  function parseRestorePayload(text) {
-    text = String(text || "").replace(/^\uFEFF/, "");
-    const i = text.indexOf(BACKUP_MARK);
-    if (i < 0) throw new Error("missing mark");
-    const data = JSON.parse(text.slice(i + BACKUP_MARK.length).trim());
-    if (!data || typeof data !== "object") throw new Error("bad json");
-    return data;
-  }
-
-  function mergeRestore(data) {
-    const store = loadStore();
-    const incoming = (data && data.series) || {};
+  function mergeStores(local, cloud) {
+    local = local || {};
+    cloud = cloud || {};
+    const out = {
+      lastId: local.lastId || null,
+      series: {},
+      history: (local.history || []).slice(),
+      lastBackupDate: local.lastBackupDate || null
+    };
+    const localSeries = local.series || {};
+    Object.keys(localSeries).forEach(function (id) {
+      const cur = localSeries[id];
+      if (!cur || typeof cur !== "object") return;
+      out.series[id] = {
+        index: cur.index || 0,
+        seconds: cur.seconds || 0,
+        finished: !!cur.finished,
+        updatedAt: cur.updatedAt || 0
+      };
+    });
+    const incoming = cloud.series || {};
     Object.keys(incoming).forEach(function (id) {
       const inc = incoming[id];
       if (!inc || typeof inc !== "object") return;
-      const cur = store.series[id];
+      const cur = out.series[id];
       const incT = Number(inc.updatedAt) || 0;
       const curT = cur ? (Number(cur.updatedAt) || 0) : -1;
       if (!cur || incT >= curT) {
-        store.series[id] = {
+        out.series[id] = {
           index: inc.index || 0,
           seconds: inc.seconds || 0,
           finished: !!inc.finished,
@@ -536,23 +455,195 @@
         };
       }
     });
-    if (Array.isArray(data.history) && data.history.length) {
-      store.history = (store.history || []).concat(data.history);
-      if (store.history.length > HISTORY_MAX) store.history = store.history.slice(-HISTORY_MAX);
+    if (Array.isArray(cloud.history) && cloud.history.length) {
+      out.history = dedupeHistory((out.history || []).concat(cloud.history));
+      if (out.history.length > HISTORY_MAX) out.history = out.history.slice(-HISTORY_MAX);
     }
-    if (data.lastId) {
-      const incLast = incoming[data.lastId];
-      const curLast = store.lastId ? store.series[store.lastId] : null;
+    if (cloud.lastId) {
+      const incLast = incoming[cloud.lastId];
+      const curLast = out.lastId ? out.series[out.lastId] : null;
       const incT = incLast ? (Number(incLast.updatedAt) || 0) : 0;
       const curT = curLast ? (Number(curLast.updatedAt) || 0) : -1;
-      if (!store.lastId || incT >= curT) store.lastId = data.lastId;
+      if (!out.lastId || incT >= curT) out.lastId = cloud.lastId;
     }
-    saveStore(store);
+    return out;
   }
 
-  function restoreFromText(text) {
-    mergeRestore(parseRestorePayload(text));
+  function cloudDocFromStore(store) {
+    store = store || loadStore();
+    return {
+      series: store.series || {},
+      history: store.history || [],
+      lastId: store.lastId || null,
+      updatedAt: Date.now()
+    };
   }
+
+  function scheduleCloudWrite() {
+    try {
+      if (!cloudUser || !cloudApi) return;
+      if (cloudWriteTimer) return;
+      cloudWriteTimer = setTimeout(function () {
+        cloudWriteTimer = null;
+        writeCloudNow();
+      }, CLOUD_WRITE_MS);
+    } catch (e) { console.log(e); }
+  }
+
+  function flushCloudWrite() {
+    try {
+      if (cloudWriteTimer) {
+        clearTimeout(cloudWriteTimer);
+        cloudWriteTimer = null;
+      }
+      return writeCloudNow();
+    } catch (e) {
+      console.log(e);
+      return Promise.resolve();
+    }
+  }
+
+  function writeCloudNow() {
+    try {
+      if (!cloudUser || !cloudApi) return Promise.resolve();
+      if (cloudWriteInFlight) {
+        cloudWriteQueued = true;
+        return cloudWriteInFlight;
+      }
+      const payload = cloudDocFromStore(loadStore());
+      const uid = cloudUser.uid;
+      cloudWriteInFlight = Promise.resolve(cloudApi.writeUserDoc(uid, payload)).then(function () {
+        cloudWriteInFlight = null;
+        if (cloudWriteQueued) {
+          cloudWriteQueued = false;
+          return writeCloudNow();
+        }
+      }).catch(function (e) {
+        cloudWriteInFlight = null;
+        console.log(e);
+      });
+      return cloudWriteInFlight;
+    } catch (e) {
+      console.log(e);
+      cloudWriteInFlight = null;
+      return Promise.resolve();
+    }
+  }
+
+  function refreshHomeIfVisible() {
+    try {
+      if (parseRoute().page === "home" && $("home")) renderHome();
+    } catch (e) { console.log(e); }
+  }
+
+  function mergeFromCloud() {
+    if (!cloudUser || !cloudApi) return Promise.resolve();
+    return Promise.resolve(cloudApi.readUserDoc(cloudUser.uid)).then(function (data) {
+      const merged = mergeStores(loadStore(), data || {});
+      const s = loadStore();
+      s.series = merged.series;
+      s.history = merged.history;
+      s.lastId = merged.lastId;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { console.log(e); }
+      return flushCloudWrite();
+    }).then(function () {
+      refreshHomeIfVisible();
+    }).catch(function (e) {
+      console.log(e);
+    });
+  }
+
+  function onCloudUser(user) {
+    try {
+      cloudUser = user || null;
+      if (cloudUser) {
+        mergeFromCloud().catch(function (e) { console.log(e); });
+      } else {
+        refreshHomeIfVisible();
+      }
+    } catch (e) { console.log(e); }
+  }
+
+  function signInWithGoogle() {
+    try {
+      if (!cloudApi) {
+        console.log("Firebase 尚未載入");
+        return;
+      }
+      const provider = new cloudApi.GoogleAuthProvider();
+      Promise.resolve(cloudApi.signInPopup(provider)).catch(function (e) {
+        const code = (e && e.code) || "";
+        if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") {
+          return Promise.resolve(cloudApi.signInRedirect(provider));
+        }
+        console.log(e);
+      }).catch(function (e) { console.log(e); });
+    } catch (e) { console.log(e); }
+  }
+
+  function signOutGoogle() {
+    try {
+      if (!cloudApi) return;
+      Promise.resolve(cloudApi.signOut()).catch(function (e) { console.log(e); });
+    } catch (e) { console.log(e); }
+  }
+
+  function attachFirebase(api) {
+    try {
+      cloudApi = api;
+      Promise.resolve(api.getRedirectResult()).catch(function (e) { console.log(e); }).then(function () {
+        api.onAuthStateChanged(onCloudUser);
+      }).catch(function (e) { console.log(e); });
+    } catch (e) { console.log(e); }
+  }
+  window.__onFirebaseModule = attachFirebase;
+  if (window.__firebaseApi) attachFirebase(window.__firebaseApi);
+
+  function renderAuthBar() {
+    const bar = document.createElement("div");
+    bar.className = "auth-bar";
+    bar.id = "auth-bar";
+    if (cloudUser) {
+      const row = document.createElement("div");
+      row.className = "auth-signed";
+      const name = document.createElement("div");
+      name.className = "auth-name";
+      name.id = "auth-name";
+      name.textContent = "已登入：" + (cloudUser.displayName || cloudUser.email || "Google 帳號");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "btn-logout";
+      btn.className = "btn-logout";
+      btn.textContent = "登出";
+      btn.addEventListener("click", function () { signOutGoogle(); });
+      row.appendChild(name);
+      row.appendChild(btn);
+      bar.appendChild(row);
+    } else {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "btn-login";
+      btn.className = "btn-login";
+      btn.textContent = "用 Google 帳號登入";
+      btn.addEventListener("click", function () { signInWithGoogle(); });
+      bar.appendChild(btn);
+    }
+    return bar;
+  }
+
+  window.__storyCloud = {
+    mergeStores: mergeStores,
+    scheduleCloudWrite: scheduleCloudWrite,
+    flushCloudWrite: flushCloudWrite,
+    writeCloudNow: writeCloudNow,
+    getUser: function () { return cloudUser; },
+    getApi: function () { return cloudApi; },
+    setTestApi: function (api) { cloudApi = api; },
+    setTestUser: function (user) { cloudUser = user; },
+    onCloudUser: onCloudUser,
+    signInWithGoogle: signInWithGoogle,
+    CLOUD_WRITE_MS: CLOUD_WRITE_MS
+  };
 
   function findSeries(id) {
     return DATA.find(function (x) { return x.id === id; }) || null;
@@ -616,14 +707,7 @@
     hint.textContent = "請點一個故事開始聽";
     wrap.appendChild(h1);
     wrap.appendChild(hint);
-
-    if (homeNotice) {
-      const msg = document.createElement("div");
-      msg.className = "restore-msg" + (homeNotice.error ? " error" : "");
-      msg.id = "restore-msg";
-      msg.textContent = homeNotice.text;
-      wrap.appendChild(msg);
-    }
+    wrap.appendChild(renderAuthBar());
 
     const recent = recentSeriesWithProgress(store, 3);
     const contWrap = document.createElement("div");
@@ -685,55 +769,10 @@
     });
     wrap.appendChild(list);
 
-    const bar = document.createElement("div");
-    bar.className = "backup-bar";
-    bar.id = "backup-bar";
-    const btnDl = document.createElement("button");
-    btnDl.type = "button";
-    btnDl.id = "btn-backup-now";
-    btnDl.className = "btn-backup-now";
-    btnDl.textContent = "現在下載備份";
-    btnDl.addEventListener("click", function () { downloadBackup(); });
-    const btnRs = document.createElement("button");
-    btnRs.type = "button";
-    btnRs.id = "btn-restore";
-    btnRs.className = "btn-restore";
-    btnRs.textContent = "從備份檔還原進度";
-    const file = document.createElement("input");
-    file.type = "file";
-    file.id = "restore-file";
-    file.accept = ".txt,text/plain";
-    file.addEventListener("change", function () {
-      const f = file.files && file.files[0];
-      file.value = "";
-      if (!f) return;
-      const reader = new FileReader();
-      reader.onload = function () {
-        try {
-          restoreFromText(String(reader.result || ""));
-          homeNotice = { text: "進度已還原", error: false };
-          renderHome();
-        } catch (err) {
-          homeNotice = { text: "這個檔案無法還原，請再選一次", error: true };
-          renderHome();
-        }
-      };
-      reader.onerror = function () {
-        homeNotice = { text: "這個檔案無法還原，請再選一次", error: true };
-        renderHome();
-      };
-      reader.readAsText(f, "UTF-8");
-    });
-    btnRs.addEventListener("click", function () { file.click(); });
-    bar.appendChild(btnDl);
-    bar.appendChild(btnRs);
-    bar.appendChild(file);
-    wrap.appendChild(bar);
     root.appendChild(wrap);
   }
 
   function startSeries(id) {
-    homeNotice = null;
     const s = findSeries(id);
     if (!s) return;
     const p = getProgress(id);
@@ -757,7 +796,7 @@
     btn.textContent = "回首頁";
     btn.addEventListener("click", function () {
       clearTimeout(finishedTimer);
-      maybeAutoBackup();
+      flushCloudWrite();
       goHome();
     });
     box.appendChild(p);
@@ -765,7 +804,7 @@
     root.appendChild(box);
     clearTimeout(finishedTimer);
     finishedTimer = setTimeout(function () {
-      maybeAutoBackup();
+      flushCloudWrite();
       goHome();
     }, 4000);
   }
@@ -869,7 +908,7 @@
     btnToggle.addEventListener("click", togglePlay);
     btnHome.addEventListener("click", function () {
       saveCurrentSeconds();
-      maybeAutoBackup();
+      flushCloudWrite();
       goHome();
     });
 
@@ -1130,7 +1169,7 @@
     if (next < 0) return;
     if (next >= series.videos.length) {
       setProgress(series.id, { index: series.videos.length - 1, seconds: 0, finished: true });
-      if (reason === "ended") maybeAutoBackup();
+      if (reason === "ended") flushCloudWrite();
       renderFinished(series.name);
       return;
     }
@@ -1146,7 +1185,7 @@
     } else {
       goPlay(series.id, next);
     }
-    if (reason === "ended") maybeAutoBackup();
+    if (reason === "ended") flushCloudWrite();
   }
 
   function teardownPlayer() {
@@ -1178,6 +1217,10 @@
       }
       renderPlayer(r.id, r.index);
     } else {
+      if (playCtx) {
+        saveCurrentSeconds();
+        flushCloudWrite();
+      }
       renderHome();
     }
   }
@@ -1235,7 +1278,7 @@
 
   function onLeavePage() {
     saveCurrentSeconds();
-    maybeAutoBackup();
+    flushCloudWrite();
   }
   window.addEventListener("hashchange", route);
   window.addEventListener("beforeunload", onLeavePage);
@@ -1245,6 +1288,47 @@
   });
 
   route();
+  </script>
+  <script type="module">
+  const firebaseConfig = {
+    apiKey: "AIzaSyAs1tzOl7acdiks0aTma3hOD0iCFz0y3t4",
+    authDomain: "yuefu-story.firebaseapp.com",
+    projectId: "yuefu-story",
+    storageBucket: "yuefu-story.firebasestorage.app",
+    messagingSenderId: "869787561868",
+    appId: "1:869787561868:web:eb7e6f8352c471e270f0a9"
+  };
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js");
+    const {
+      getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+      getRedirectResult, onAuthStateChanged, signOut
+    } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js");
+    const { getFirestore, doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const api = {
+      GoogleAuthProvider: GoogleAuthProvider,
+      getRedirectResult: function () { return getRedirectResult(auth); },
+      onAuthStateChanged: function (cb) { return onAuthStateChanged(auth, cb); },
+      signInPopup: function (provider) { return signInWithPopup(auth, provider); },
+      signInRedirect: function (provider) { return signInWithRedirect(auth, provider); },
+      signOut: function () { return signOut(auth); },
+      readUserDoc: function (uid) {
+        return getDoc(doc(db, "users", uid)).then(function (snap) {
+          return snap.exists() ? snap.data() : null;
+        });
+      },
+      writeUserDoc: function (uid, data) {
+        return setDoc(doc(db, "users", uid), data);
+      }
+    };
+    if (typeof window.__onFirebaseModule === "function") window.__onFirebaseModule(api);
+    else window.__firebaseApi = api;
+  } catch (e) {
+    console.log(e);
+  }
   </script>
   <script src="https://www.youtube.com/iframe_api"></script>
 </body>
