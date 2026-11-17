@@ -105,6 +105,119 @@
     .series-card .meta { font-size: 40px; color: var(--yellow); display: block; }
     .series-card .meta + .meta { margin-top: 4px; }
 
+    /* 首頁 預覽：上方一列 + 3x3 格 + 翻頁 */
+    .home2 { padding: 0 12px 24px; }
+    .home-main {
+      height: 100vh;
+      max-height: 900px;
+      display: flex;
+      flex-direction: column;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .home-top {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 10px;
+      flex: 0 0 auto;
+    }
+    .home-top .title-box {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding: 4px 0;
+    }
+    .home-top .title-box .t { font-size: clamp(32px, 3.8vw, 48px); color: var(--yellow); line-height: 1.2; }
+    .home-top .title-box .h { font-size: clamp(22px, 2.6vw, 30px); color: var(--white); }
+    .btn-cont2 {
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+      background: var(--yellow);
+      color: #000;
+      border-color: var(--yellow);
+      border-width: 5px;
+      padding: 6px 16px;
+      font-size: clamp(26px, 3.2vw, 38px);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 0;
+      width: auto;
+    }
+    .btn-cont2 .ep { font-size: 0.8em; margin-left: 0.4em; }
+    .btn-hist2 {
+      flex: 0 0 auto;
+      border-width: 5px;
+      padding: 6px 18px;
+      font-size: clamp(26px, 3.2vw, 38px);
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+    .grid {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .card2 {
+      text-align: left;
+      padding: 8px 8px 8px 10px;
+      border-width: 5px;
+      border-radius: 14px;
+      background: var(--card);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card2:hover, .card2:focus-visible { background: var(--yellow); color: #000; }
+    .card2:hover .meta2, .card2:focus-visible .meta2 { color: #000; }
+    .card2 .name2 {
+      display: block;
+      font-size: clamp(32px, 4.7vw, 56px);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .card2 .meta2 {
+      display: block;
+      font-size: clamp(22px, 2.9vw, 34px);
+      color: var(--yellow);
+      line-height: 1.3;
+      margin-top: 8px;
+    }
+    .card2 .meta2 .st { color: var(--white); }
+    .card2:hover .meta2 .st, .card2:focus-visible .meta2 .st { color: #000; }
+    .card2.empty { visibility: hidden; }
+    .pager {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+      flex: 0 0 auto;
+    }
+    .pager button {
+      flex: 0 0 auto;
+      min-width: 170px;
+      border-width: 5px;
+      padding: 4px 20px;
+      font-size: clamp(26px, 3.2vw, 38px);
+      line-height: 1.25;
+    }
+    .pager .pg-text {
+      flex: 1 1 auto;
+      text-align: center;
+      font-size: clamp(24px, 3vw, 36px);
+    }
+    .home2 .auth-bar { margin-top: 16px; }
+
     /* 播放頁：置中、最寬 1100px；標題列與按鈕一定看得到，影片用剩下的高度 */
     .player-page {
       height: 100vh;
@@ -832,96 +945,170 @@
     return items.slice(0, limit || 3);
   }
 
+  const HOME_PER_PAGE = 6;
+  let homePage = 0;
+  try { homePage = parseInt(sessionStorage.getItem("home-page") || "0", 10) || 0; } catch (e) {}
+
+  function cardStatus(s) {
+    const p = getProgress(s.id);
+    if (!p) return "";
+    if (p.finished) return "已聽完";
+    return "聽到第 " + Math.min((p.index || 0) + 1, s.videos.length) + " 集";
+  }
+
   function renderHome() {
     teardownPlayer();
     const store = loadStore();
-
     const root = $("app");
     root.innerHTML = "";
     const wrap = document.createElement("div");
-    wrap.className = "wrap";
+    wrap.className = "wrap home2";
     wrap.id = "home";
 
-    const h1 = document.createElement("h1");
-    h1.textContent = "雲卷雲書";
-    const hint = document.createElement("p");
-    hint.className = "hint";
-    hint.textContent = "請點一個故事開始聽";
-    const recent = recentSeriesWithProgress(store, 3);
-    const contWrap = document.createElement("div");
-    contWrap.id = "continue-wrap";
-    if (!recent.length) {
-      contWrap.hidden = true;
+    // 上方一列：繼續聽（有記錄才出現）＋ 觀看記錄
+    const top = document.createElement("div");
+    top.className = "home-top";
+    top.id = "home-top";
+    const recent = recentSeriesWithProgress(store, 1);
+    if (recent.length) {
+      const series = recent[0].series;
+      const lastP = recent[0].progress;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-cont2 btn-continue";
+      btn.id = "btn-continue";
+      btn.setAttribute("data-id", series.id);
+      const ep = document.createElement("span");
+      ep.className = "ep";
+      if (lastP && lastP.finished) {
+        btn.textContent = "再聽一次 " + series.name;
+        ep.textContent = "已聽完";
+      } else {
+        const n = lastP ? Math.min((lastP.index || 0) + 1, series.videos.length) : 1;
+        btn.textContent = "▶ 繼續聽 " + series.name;
+        ep.textContent = "第 " + n + " 集";
+      }
+      btn.appendChild(ep);
+      btn.addEventListener("click", function () { startSeries(series.id, true); });
+      top.appendChild(btn);
     } else {
-      recent.forEach(function (item, i) {
-        const series = item.series;
-        const lastP = item.progress;
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn-continue";
-        btn.id = i === 0 ? "btn-continue" : ("btn-continue-" + i);
-        btn.setAttribute("data-id", series.id);
-        const big = document.createElement("span");
-        big.className = "big";
-        const sub = document.createElement("span");
-        sub.className = "sub";
-        if (lastP && lastP.finished) {
-          big.textContent = "再聽一次 " + series.name;
-          sub.textContent = "已經聽完了";
-        } else {
-          const n = lastP ? Math.min((lastP.index || 0) + 1, series.videos.length) : 1;
-          big.textContent = "繼續聽 " + series.name;
-          sub.textContent = "第 " + n + " 集";
-        }
-        btn.appendChild(big);
-        btn.appendChild(sub);
-        btn.addEventListener("click", function () {
-          startSeries(series.id, true);
-        });
-        contWrap.appendChild(btn);
-      });
+      const tb = document.createElement("div");
+      tb.className = "title-box";
+      const t = document.createElement("span");
+      t.className = "t";
+      t.textContent = "雲卷雲書";
+      const h = document.createElement("span");
+      h.className = "h";
+      h.textContent = "請點一個故事開始聽";
+      tb.appendChild(t);
+      tb.appendChild(h);
+      top.appendChild(tb);
     }
-    wrap.appendChild(contWrap);
-    wrap.appendChild(h1);
-    wrap.appendChild(hint);
-
-    const list = document.createElement("div");
-    list.className = "series-list";
-    DATA.forEach(function (s) {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "series-card";
-      card.setAttribute("data-id", s.id);
-      const name = document.createElement("span");
-      name.className = "name";
-      name.textContent = s.name;
-      const count = document.createElement("span");
-      count.className = "meta";
-      count.textContent = "共 " + s.videos.length + " 集";
-      const prog = document.createElement("span");
-      prog.className = "meta";
-      prog.textContent = progressLabel(s.id, s.videos.length);
-      card.appendChild(name);
-      card.appendChild(count);
-      card.appendChild(prog);
-      card.addEventListener("click", function () { startSeries(s.id); });
-      list.appendChild(card);
-    });
-    wrap.appendChild(list);
-    const tools = document.createElement("div");
-    tools.className = "home-tools";
     const btnHist = document.createElement("button");
     btnHist.type = "button";
     btnHist.id = "btn-history";
-    btnHist.className = "btn-history";
+    btnHist.className = "btn-hist2";
     btnHist.textContent = "觀看記錄";
     btnHist.addEventListener("click", function () { location.hash = "#/history"; });
-    tools.appendChild(btnHist);
-    wrap.appendChild(tools);
-    wrap.appendChild(renderAuthBar());
+    top.appendChild(btnHist);
+    const main = document.createElement("div");
+    main.className = "home-main";
+    main.id = "home-main";
+    main.appendChild(top);
 
+    // 3x2 故事格
+    const pages = Math.max(1, Math.ceil(DATA.length / HOME_PER_PAGE));
+    homePage = Math.max(0, Math.min(homePage, pages - 1));
+    const grid = document.createElement("div");
+    grid.className = "grid series-list";
+    grid.id = "grid";
+    const slice = DATA.slice(homePage * HOME_PER_PAGE, (homePage + 1) * HOME_PER_PAGE);
+    slice.forEach(function (s) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "card2 series-card";
+      card.setAttribute("data-id", s.id);
+      const name = document.createElement("span");
+      name.className = "name2 name";
+      name.textContent = s.name;
+      const meta = document.createElement("span");
+      meta.className = "meta2";
+      meta.textContent = "共 " + s.videos.length + " 集";
+      const st = cardStatus(s);
+      if (st) {
+        const stEl = document.createElement("span");
+        stEl.className = "st";
+        stEl.textContent = "・" + st;
+        meta.appendChild(stEl);
+      }
+      card.appendChild(name);
+      card.appendChild(meta);
+      card.addEventListener("click", function () { startSeries(s.id); });
+      grid.appendChild(card);
+    });
+    for (let i = slice.length; i < HOME_PER_PAGE; i++) {
+      const filler = document.createElement("div");
+      filler.className = "card2 empty";
+      filler.innerHTML = '<span class="name2">　</span><span class="meta2">　</span>';
+      grid.appendChild(filler);
+    }
+    main.appendChild(grid);
+
+    // 翻頁
+    const pager = document.createElement("div");
+    pager.className = "pager";
+    pager.id = "pager";
+    const prev = document.createElement("button");
+    prev.type = "button";
+    prev.id = "btn-page-prev";
+    prev.textContent = "上一頁";
+    prev.disabled = homePage <= 0;
+    const txt = document.createElement("div");
+    txt.className = "pg-text";
+    txt.id = "pg-text";
+    txt.textContent = "第 " + (homePage + 1) + " 頁／共 " + pages + " 頁";
+    const next = document.createElement("button");
+    next.type = "button";
+    next.id = "btn-page-next";
+    next.textContent = "下一頁";
+    next.disabled = homePage >= pages - 1;
+    function goPage(d) {
+      homePage = Math.max(0, Math.min(homePage + d, pages - 1));
+      try { sessionStorage.setItem("home-page", String(homePage)); } catch (e) {}
+      renderHome();
+      try { window.scrollTo(0, 0); } catch (e) {}
+    }
+    prev.addEventListener("click", function () { goPage(-1); });
+    next.addEventListener("click", function () { goPage(1); });
+    pager.appendChild(prev);
+    pager.appendChild(txt);
+    pager.appendChild(next);
+    main.appendChild(pager);
+    wrap.appendChild(main);
+
+    wrap.appendChild(renderAuthBar());
     root.appendChild(wrap);
+    fitCardTitles();
   }
+
+  // 名稱太長時逐步縮小字，保證一行放得下
+  function fitCardTitles() {
+    try {
+      document.querySelectorAll(".card2 .name2").forEach(function (el) {
+        el.style.fontSize = "";
+        let fs = parseFloat(getComputedStyle(el).fontSize) || 40;
+        let guard = 0;
+        while (el.scrollWidth > el.clientWidth + 0.5 && fs > 18 && guard < 60) {
+          fs -= 1;
+          el.style.fontSize = fs + "px";
+          guard++;
+        }
+      });
+    } catch (e) { console.log(e); }
+  }
+  window.addEventListener("resize", function () {
+    if ($("grid")) fitCardTitles();
+  });
 
   // rewind=true：首頁「繼續聽」和觀看記錄「接著聽」用，從上次位置往前 30 秒開始
   function startSeries(id, rewind) {
