@@ -441,6 +441,8 @@
     .hist-table tbody tr:hover { background: #1c1c1c; }
     .hist-table td.title { color: #fff; font-weight: 700; word-break: keep-all; overflow-wrap: normal; }
     .hist-table td.when { word-break: keep-all; overflow-wrap: normal; }
+    .hist-table td.ep { word-break: keep-all; overflow-wrap: normal; }
+    .hist-table td.ep .u { white-space: nowrap; }
     .hist-table td.pos, .hist-table td.hist-done, .hist-table td.hist-half { white-space: nowrap; }
     .hist-done { color: #8fd18f; }
     .hist-half { color: var(--yellow); }
@@ -1701,10 +1703,22 @@
               if (k > 0) td.appendChild(document.createElement("wbr"));
               td.appendChild(document.createTextNode(part));
             });
+          } else if (i === 1) {
+            // 「第 N 集 /」與「共 M 集」各自不拆開，只能在斜線後換行
+            const a = document.createElement("span");
+            a.className = "u";
+            a.textContent = "第 " + n + " 集 /";
+            const b2 = document.createElement("span");
+            b2.className = "u";
+            b2.textContent = "共 " + total + " 集";
+            td.appendChild(a);
+            td.appendChild(document.createTextNode(" "));
+            td.appendChild(b2);
           } else {
             td.textContent = c;
           }
           if (i === 0) td.className = "title";
+          if (i === 1) td.className = "ep";
           if (i === 2) td.className = "pos";
           if (i === 3) td.className = "when";
           if (i === 4) td.className = pr.finished ? "hist-done" : "hist-half";
