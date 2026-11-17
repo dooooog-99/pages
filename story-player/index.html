@@ -555,6 +555,8 @@
   let progTimer = null;
   let pendingRewind = null;
   let pendingFresh = null;
+  let undoNext = null; // { seriesId, index, seconds, at }：手動下一集前的位置，5 分鐘內按上一集可回到原處
+  const UNDO_NEXT_MS = 5 * 60 * 1000;
   let announceUntil = 0;
   let announceTimer = null;
   const RESUME_REWIND = 30;
@@ -1808,6 +1810,32 @@
     const next = playCtx.index + delta;
     const series = playCtx.series;
     if (next < 0) return;
+    // 手動「下一集」：記住這集的位置；5 分鐘內按「上一集」就回到原處
+    let resumeAt = 0;
+    if (delta === 1 && reason !== "ended") {
+      let cur = 0;
+      let dur = 0;
+      let ended = false;
+      try {
+        if (ytPlayer) {
+          const t = ytPlayer.getCurrentTime();
+          if (typeof t === "number" && !isNaN(t)) cur = Math.max(0, Math.floor(t));
+          const d = ytPlayer.getDuration();
+          if (typeof d === "number" && !isNaN(d) && d > 0) dur = d;
+          if (window.YT && ytPlayer.getPlayerState() === YT.PlayerState.ENDED) ended = true;
+        }
+      } catch (err) {}
+      const finishedEp = ended || (dur > 0 && cur >= dur - 2);
+      undoNext = finishedEp ? null : { seriesId: series.id, index: playCtx.index, seconds: cur, at: Date.now() };
+    } else if (delta === -1) {
+      const u = undoNext;
+      if (u && u.seriesId === series.id && u.index === next && Date.now() - u.at <= UNDO_NEXT_MS) {
+        resumeAt = u.seconds;
+      }
+      undoNext = null;
+    } else {
+      undoNext = null;
+    }
     if (next >= series.videos.length) {
       setProgress(series.id, { index: series.videos.length - 1, seconds: 0, finished: true });
       if (reason === "ended") flushCloudWrite();
@@ -1816,13 +1844,13 @@
     }
     const samePage = $("player-page");
     playCtx.index = next;
-    setProgress(series.id, { index: next, seconds: 0, finished: false });
+    setProgress(series.id, { index: next, seconds: resumeAt, finished: false });
     if (samePage) {
       if (location.hash !== "#/play/" + encodeURIComponent(series.id) + "/" + next) {
         history.replaceState(null, "", "#/play/" + encodeURIComponent(series.id) + "/" + next);
       }
       updatePlayerChrome();
-      createOrLoadPlayer(series.videos[next], 0);
+      createOrLoadPlayer(series.videos[next], resumeAt);
     } else {
       goPlay(series.id, next);
     }
@@ -1830,6 +1858,7 @@
   }
 
   function teardownPlayer() {
+    undoNext = null;
     clearInterval(saveTimer);
     saveTimer = null;
     clearInterval(histTimer);
