@@ -124,9 +124,9 @@
     }
     .btn-home {
       flex: 0 0 auto;
-      font-size: 26px;
+      font-size: 38px;
       line-height: 1.2;
-      padding: 8px 18px;
+      padding: 6px 18px;
       border-width: 4px;
       border-radius: 12px;
       background: var(--card);
@@ -209,6 +209,17 @@
       background: transparent;
       cursor: pointer;
     }
+    /* 上下黑條：蓋住 YouTube 的標題、分享、更多影片、標誌 */
+    .yt-shield::before, .yt-shield::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 12%;
+      background: #000;
+    }
+    .yt-shield::before { top: 0; }
+    .yt-shield::after { bottom: 0; }
     .play-status {
       position: absolute;
       inset: 0;
