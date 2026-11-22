@@ -14,6 +14,8 @@
       --disabled-fg: #9a9a9a;
       --gap: 28px;
       --radius: 18px;
+      --page-zoom: 1;
+      --focus-ring: 7px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -26,7 +28,7 @@
       line-height: 1.35;
       min-height: 100%;
     }
-    body { min-height: 100vh; }
+    body { min-height: 100vh; zoom: var(--page-zoom); }
     button {
       font: inherit;
       font-weight: 700;
@@ -106,14 +108,13 @@
     .series-card .meta + .meta { margin-top: 4px; }
 
     /* 首頁 預覽：上方一列 + 3x3 格 + 翻頁 */
-    .home2 { padding: 0 12px 24px; }
+    .home2 { padding: 0 max(12px, calc(var(--focus-ring) + 4px)) 24px; }
     .home-main {
-      height: 100vh;
-      max-height: 900px;
+      height: calc(100vh / var(--page-zoom));
       display: flex;
       flex-direction: column;
-      padding-top: 10px;
-      padding-bottom: 10px;
+      padding-top: max(10px, calc(var(--focus-ring) + 2px));
+      padding-bottom: max(10px, calc(var(--focus-ring) + 2px));
     }
     .home-top {
       display: flex;
@@ -157,7 +158,7 @@
       background: #0066FF;
       color: #fff;
       border-color: #0066FF;
-      outline: 7px solid #fff;
+      outline: var(--focus-ring) solid #fff;
       outline-offset: 1px;
       position: relative;
       z-index: 1;
@@ -178,7 +179,15 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       grid-template-rows: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      gap: 12px;
+    }
+    body.home-4 .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+    body.home-3 .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: 1fr;
     }
     .card2 {
       text-align: left;
@@ -197,7 +206,7 @@
     .card2.kbd-sel {
       background: var(--yellow);
       color: #000;
-      outline: 7px solid #fff;
+      outline: var(--focus-ring) solid #fff;
       outline-offset: 1px;
       position: relative;
       z-index: 1;
@@ -206,16 +215,18 @@
     .card2:hover .meta2, .card2:focus-visible .meta2 { color: #000; }
     .card2 .name2 {
       display: block;
+      flex-shrink: 0;
       font-size: clamp(32px, 4.7vw, 56px);
       line-height: 1.2;
       white-space: nowrap;
     }
     .card2 .meta2 {
       display: block;
+      flex-shrink: 0;
       font-size: clamp(22px, 2.9vw, 34px);
       color: var(--yellow);
-      line-height: 1.3;
-      margin-top: 8px;
+      line-height: 1.25;
+      margin-top: 6px;
     }
     .card2 .meta2 .st { color: var(--white); }
     .card2:hover .meta2 .st, .card2:focus-visible .meta2 .st { color: #000; }
@@ -244,7 +255,7 @@
 
     /* 播放頁：置中、最寬 1100px；標題列與按鈕一定看得到，影片用剩下的高度 */
     .player-page {
-      height: 100vh;
+      height: calc(100vh / var(--page-zoom));
       max-width: 1100px;
       margin: 0 auto;
       display: flex;
@@ -399,10 +410,11 @@
     .progress-text {
       flex: 0 0 auto;
       font-size: clamp(28px, 3.4vw, 40px);
-      line-height: 1.1;
+      line-height: 1;
       color: var(--white);
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
+      overflow: visible;
     }
     .home-tools { margin-top: 56px; }
     .home-tools + .auth-bar { margin-top: 20px; }
@@ -473,7 +485,8 @@
       font-size: clamp(26px, 3.5vw, 40px);
       line-height: 1.2;
       padding: 10px 8px;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .btn-play {
       background: var(--yellow);
@@ -502,7 +515,7 @@
       text-align: center;
     }
     .finished {
-      min-height: 100vh;
+      min-height: calc(100vh / var(--page-zoom));
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -987,7 +1000,54 @@
     return items.slice(0, limit || 3);
   }
 
-  const HOME_PER_PAGE = 6;
+  const DESIGN_W = 911;
+  const DESIGN_H = 512;
+  let HOME_PER_PAGE = 6;
+  let HOME_COLS = 3;
+
+  function unclampedZoom() {
+    return Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H);
+  }
+
+  function pageZoom() {
+    return Math.min(1, Math.max(0.45, unclampedZoom()));
+  }
+
+  function baseHomePerPage() {
+    // 縮到 0.45 仍放不下原本 911×512 設計時，先改成 2×2 四張；還不夠再降成三張
+    return unclampedZoom() < 0.45 ? 4 : 6;
+  }
+
+  function syncHomeGridClass() {
+    document.body.classList.toggle("home-4", HOME_PER_PAGE === 4);
+    document.body.classList.toggle("home-3", HOME_PER_PAGE === 3);
+  }
+
+  function applyPageScale() {
+    const z = pageZoom();
+    document.documentElement.style.setProperty("--page-zoom", String(z));
+    document.documentElement.style.setProperty("--focus-ring", (7 / z) + "px");
+    const per = baseHomePerPage();
+    const changed = per !== HOME_PER_PAGE;
+    HOME_PER_PAGE = per;
+    HOME_COLS = per === 4 ? 2 : 3;
+    syncHomeGridClass();
+    window.__pageScale = { zoom: z, unclamped: unclampedZoom(), perPage: per, cols: HOME_COLS };
+    return changed;
+  }
+
+  function onViewportChange() {
+    const oldPer = HOME_PER_PAGE;
+    const first = homePage * oldPer + (homeSel || 0);
+    const modeChanged = applyPageScale();
+    if (modeChanged && $("grid")) {
+      homePage = Math.floor(first / HOME_PER_PAGE);
+      homeSel = first % HOME_PER_PAGE;
+      renderHome();
+    } else if ($("grid")) {
+      fitCardTitles();
+    }
+  }
   let homeSel = 0;
   let homeSelWant = null;
   let homeFocusOnContinue = false;
@@ -1001,6 +1061,32 @@
     if (!p) return "";
     if (p.finished) return "已聽完";
     return "聽到第 " + Math.min((p.index || 0) + 1, s.videos.length) + " 集";
+  }
+
+
+  function homeCardsOverflow() {
+    try {
+      const nodes = document.querySelectorAll("#grid .card2.series-card .name2, #grid .card2.series-card .meta2, #pg-text, .pager button");
+      for (let i = 0; i < nodes.length; i++) {
+        const el = nodes[i];
+        if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) return true;
+        const card = el.closest(".card2");
+        if (card && card.scrollHeight > card.clientHeight + 1) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  let tighteningHome = false;
+  function maybeTightenHomeGrid() {
+    if (tighteningHome || HOME_PER_PAGE !== 4 || !$("grid")) return;
+    if (!homeCardsOverflow()) return;
+    tighteningHome = true;
+    HOME_PER_PAGE = 3;
+    HOME_COLS = 3;
+    syncHomeGridClass();
+    if (window.__pageScale) { window.__pageScale.perPage = 3; window.__pageScale.cols = 3; }
+    try { renderHome(); } finally { tighteningHome = false; }
   }
 
   function renderHome() {
@@ -1142,6 +1228,7 @@
     }
     homeSelWant = null;
     selectHomeCard(sel);
+    maybeTightenHomeGrid();
   }
 
   function homeCards() {
@@ -1193,7 +1280,7 @@
     const ae = document.activeElement;
     const btnCont = document.getElementById("btn-continue");
     const onContinue = !!(btnCont && (homeFocusOnContinue || ae === btnCont));
-    const COLS = 3;
+    const COLS = HOME_COLS;
     if (onContinue) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -1243,6 +1330,7 @@
     try {
       document.querySelectorAll(".card2 .name2").forEach(function (el) {
         el.style.fontSize = "";
+        el.style.whiteSpace = "nowrap";
         let fs = parseFloat(getComputedStyle(el).fontSize) || 40;
         let guard = 0;
         while (el.scrollWidth > el.clientWidth + 0.5 && fs > 18 && guard < 60) {
@@ -1250,12 +1338,23 @@
           el.style.fontSize = fs + "px";
           guard++;
         }
+        if (el.scrollWidth > el.clientWidth + 0.5) el.style.whiteSpace = "normal";
+        const card = el.closest(".card2");
+        if (card) {
+          const meta = card.querySelector(".meta2");
+          let mfs = meta ? parseFloat(getComputedStyle(meta).fontSize) : 0;
+          guard = 0;
+          while (card.scrollHeight > card.clientHeight + 0.5 && guard < 50) {
+            if (fs > 16) { fs -= 1; el.style.fontSize = fs + "px"; }
+            if (meta && mfs > 16) { mfs -= 1; meta.style.fontSize = mfs + "px"; }
+            if (fs <= 16 && mfs <= 16) break;
+            guard++;
+          }
+        }
       });
     } catch (e) { console.log(e); }
   }
-  window.addEventListener("resize", function () {
-    if ($("grid")) fitCardTitles();
-  });
+  window.addEventListener("resize", onViewportChange);
 
   // rewind=true：首頁「繼續聽」和觀看記錄「接著聽」用，從上次位置往前 30 秒開始
   function startSeries(id, rewind) {
@@ -2121,6 +2220,7 @@
     if (document.hidden) onLeavePage();
   });
 
+  applyPageScale();
   route();
   </script>
   <script type="module">
