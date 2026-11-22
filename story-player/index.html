@@ -288,14 +288,16 @@
     }
     .player-head .sname {
       display: inline;
-      font-size: clamp(28px, 3.4vw, 44px);
+      font-size: 48px;
       color: var(--yellow);
+      overflow-wrap: anywhere;
     }
     .player-head .ep {
       display: inline;
-      font-size: clamp(26px, 3vw, 40px);
+      font-size: 38px;
       color: var(--white);
       margin-left: 0.6em;
+      white-space: nowrap;
     }
     .yt-area {
       flex: 1 1 auto;
@@ -406,17 +408,17 @@
     }
     .progress-bar {
       flex: 1 1 auto;
-      height: 22px;
+      height: 33px;
       background: #3a3a3a;
       border: 3px solid var(--white);
-      border-radius: 14px;
+      border-radius: 17px;
       overflow: hidden;
       pointer-events: none;
     }
     .progress-fill {
       height: 100%;
       width: 0%;
-      background: var(--yellow);
+      background: #FF0000;
     }
     .progress-text {
       flex: 0 0 auto;
@@ -494,12 +496,12 @@
       flex: 1 1 0;
       min-width: 0;
       min-height: 84px;
-      font-size: clamp(26px, 3.5vw, 40px);
+      font-size: 38px;
       line-height: 1.2;
       padding: 10px 8px;
       white-space: normal;
-      overflow-wrap: anywhere;
     }
+    .controls button .u { white-space: nowrap; }
     .btn-play {
       background: var(--yellow);
       color: #000;
@@ -1502,7 +1504,11 @@
     const btnBack = document.createElement("button");
     btnBack.type = "button";
     btnBack.id = "btn-back30";
-    btnBack.textContent = "倒退30秒";
+    btnBack.appendChild(document.createTextNode("倒退"));
+    const backUnit = document.createElement("span");
+    backUnit.className = "u";
+    backUnit.textContent = "30秒";
+    btnBack.appendChild(backUnit);
     const btnToggle = document.createElement("button");
     btnToggle.type = "button";
     btnToggle.id = "btn-toggle";
@@ -1511,7 +1517,11 @@
     const btnFwd = document.createElement("button");
     btnFwd.type = "button";
     btnFwd.id = "btn-fwd30";
-    btnFwd.textContent = "快轉30秒";
+    btnFwd.appendChild(document.createTextNode("快轉"));
+    const fwdUnit = document.createElement("span");
+    fwdUnit.className = "u";
+    fwdUnit.textContent = "30秒";
+    btnFwd.appendChild(fwdUnit);
     const btnNext = document.createElement("button");
     btnNext.type = "button";
     btnNext.id = "btn-next";
