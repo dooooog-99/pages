@@ -606,6 +606,9 @@
   let flashTimer = null;
   let statusTimer = null;
   let progTimer = null;
+  let pendingProgress = null; // { t, expires, dragging }：拖曳預覽／等待播放器跟上時，輪詢不要把進度條拉回去
+  const PENDING_PROGRESS_NEAR = 2;
+  const PENDING_PROGRESS_MS = 3000;
   let pendingRewind = null;
   let pendingFresh = null;
   let undoNext = null; // { seriesId, index, seconds, at }：手動下一集前的位置，5 分鐘內按上一集可回到原處
@@ -1762,7 +1765,32 @@
     return (h * 60 + m) + ":" + pad2(ss);
   }
 
-  // 播放進度（顯示；點進度條或拖曳會跳到該位置）
+  // 播放進度（顯示；點進度條或拖曳會先更新外觀，放開時再一次跳到該位置）
+  function paintProgress(cur, dur) {
+    const text = $("progress-text");
+    const fill = $("progress-fill");
+    if (!text || !fill) return;
+    if (cur < 0) cur = 0;
+    if (dur > 0 && cur > dur) cur = dur;
+    const longVideo = dur >= 3600;
+    text.textContent = fmtClock(cur, longVideo) + " / " + fmtClock(dur, longVideo);
+    fill.style.width = (dur > 0 ? Math.min(100, (cur / dur) * 100) : 0) + "%";
+  }
+
+  function previewProgress(t, dragging) {
+    let dur = 0;
+    try {
+      if (ytPlayer) {
+        const d = ytPlayer.getDuration();
+        if (typeof d === "number" && !isNaN(d) && d > 0) dur = d;
+      }
+    } catch (e) {}
+    if (t < 0) t = 0;
+    if (dur > 0 && t > dur) t = dur;
+    pendingProgress = { t: t, expires: Date.now() + PENDING_PROGRESS_MS, dragging: !!dragging };
+    paintProgress(t, dur);
+  }
+
   function updateProgress() {
     const text = $("progress-text");
     const fill = $("progress-fill");
@@ -1777,10 +1805,12 @@
         if (typeof d === "number" && !isNaN(d) && d > 0) dur = d;
       }
     } catch (e) {}
-    if (dur > 0 && cur > dur) cur = dur;
-    const longVideo = dur >= 3600;
-    text.textContent = fmtClock(cur, longVideo) + " / " + fmtClock(dur, longVideo);
-    fill.style.width = (dur > 0 ? Math.min(100, (cur / dur) * 100) : 0) + "%";
+    if (pendingProgress) {
+      if (pendingProgress.dragging) return;
+      if (Date.now() < pendingProgress.expires && Math.abs(cur - pendingProgress.t) > PENDING_PROGRESS_NEAR) return;
+      pendingProgress = null;
+    }
+    paintProgress(cur, dur);
   }
 
   function startProgressLoop() {
@@ -2057,21 +2087,25 @@
       dragging = true;
       e.preventDefault();
       try { if (e.pointerId != null) hit.setPointerCapture(e.pointerId); } catch (err) {}
-      seekToTime(t);
+      previewProgress(t, true);
     }
     function move(e) {
       if (!dragging) return;
       const t = timeFromProgressEvent(e);
       if (t == null) return;
       if (e.cancelable) e.preventDefault();
-      seekToTime(t);
+      previewProgress(t, true);
     }
     function up(e) {
       if (!dragging) return;
       dragging = false;
       try { if (e.pointerId != null) hit.releasePointerCapture(e.pointerId); } catch (err) {}
-      const t = timeFromProgressEvent(e);
-      if (t != null) seekToTime(t);
+      let t = timeFromProgressEvent(e);
+      if (t == null && pendingProgress) t = pendingProgress.t;
+      if (t != null) {
+        previewProgress(t, false);
+        seekToTime(t);
+      }
       returnFocusToPage();
     }
     hit.addEventListener("pointerdown", down);
@@ -2199,6 +2233,7 @@
     statusTimer = null;
     clearInterval(progTimer);
     progTimer = null;
+    pendingProgress = null;
     clearTimeout(announceTimer);
     announceTimer = null;
     announceUntil = 0;
